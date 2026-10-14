@@ -1,128 +1,137 @@
 import SwiftUI
 
 struct HomeView: View {
+    @Environment(AppState.self) private var appState
+    private let heart = SampleAnatomyData.heart
+
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                HomeGreeting()
-                ContinueLearningCard()
-                HomeStatistics()
-                RecommendedLessonCard()
-                HomeProgressCard()
+            LazyVStack(alignment: .leading, spacing: 28) {
+                HomeHeader(learnerName: appState.learnerName)
+                ContinueLearningHero(
+                    organ: heart,
+                    progress: appState.progress(for: heart)
+                )
+                QuickStatsRow()
+                OrganJourneySection(appState: appState)
             }
-            .padding()
+            .padding(.horizontal, 20)
+            .padding(.bottom, 32)
         }
-        .navigationTitle("Home")
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                NavigationLink {
-                    SettingsView()
-                } label: {
-                    Image(systemName: "person.crop.circle")
-                }
-                .accessibilityLabel("Profile and settings")
-            }
-        }
+        .toolbar(.hidden, for: .navigationBar)
         .anatomyScreenBackground()
     }
 }
 
-private struct HomeGreeting: View {
+private struct HomeHeader: View {
+    let learnerName: String
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Good evening,")
-                .foregroundStyle(AnatomyTheme.textSecondary)
-
-            Text("Ravindu")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundStyle(AnatomyTheme.textPrimary)
-        }
-    }
-}
-
-private struct ContinueLearningCard: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("CONTINUE LEARNING")
-                .font(.caption)
-                .fontWeight(.bold)
-                .foregroundStyle(AnatomyTheme.heart)
-
-            HStack {
-                Image(systemName: "heart.fill")
-                    .font(.system(size: 42))
-                    .foregroundStyle(AnatomyTheme.heart)
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Heart — Chambers")
-                        .font(.headline)
-                    Text("Lesson 3 of 5 • 60% complete")
-                        .font(.subheadline)
-                        .foregroundStyle(AnatomyTheme.textSecondary)
-                }
+        HStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("GOOD EVENING")
+                    .font(.caption.weight(.bold))
+                    .tracking(1.5)
+                    .foregroundStyle(AnatomyTheme.teal)
+                Text("Ready, \(learnerName)?")
+                    .font(.largeTitle.weight(.bold))
+                    .foregroundStyle(AnatomyTheme.textPrimary)
             }
+
+            Spacer()
 
             NavigationLink {
-                LessonDetailView(lesson: SampleAnatomyData.heartLessons[2])
+                SettingsView()
             } label: {
-                Text("Resume Lesson")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .frame(minHeight: 46)
-                    .foregroundStyle(.white)
-                    .background(AnatomyTheme.heart, in: RoundedRectangle(cornerRadius: 12))
+                Image(systemName: "person.crop.circle.fill")
+                    .font(.system(size: 42))
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(.white, AnatomyTheme.teal.opacity(0.45))
             }
+            .accessibilityLabel("Profile and settings")
         }
-        .anatomyCard()
+        .padding(.top, 14)
     }
 }
 
-private struct HomeStatistics: View {
+private struct ContinueLearningHero: View {
+    let organ: Organ
+    let progress: Double
+
     var body: some View {
-        HStack(spacing: 10) {
-            StatisticTile(value: "3", label: "Day Streak", icon: "flame.fill")
-            StatisticTile(value: "80%", label: "Quiz Average", icon: "checkmark.seal.fill")
-            StatisticTile(value: "5", label: "Saved", icon: "bookmark.fill")
+        ZStack(alignment: .bottomLeading) {
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .fill(AnatomyTheme.organGradient(for: organ.id))
+
+            Circle()
+                .fill(AnatomyTheme.heart.opacity(0.2))
+                .frame(width: 240)
+                .blur(radius: 30)
+                .offset(x: 150, y: -60)
+
+            OrganArtworkView(organID: organ.id, size: 220)
+                .offset(x: 135, y: -42)
+
+            VStack(alignment: .leading, spacing: 14) {
+                StatusBadge(title: "CONTINUE", systemImage: "play.fill", color: .white)
+
+                Spacer()
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("Heart valves")
+                        .font(.title.weight(.bold))
+                    Text("Lesson 3 · 8 min · \(progress, format: .percent.precision(.fractionLength(0)))")
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.72))
+                }
+
+                NavigationLink {
+                    LessonDetailView(lesson: SampleAnatomyData.heartLessons[2])
+                } label: {
+                    Label("Resume lesson", systemImage: "arrow.right")
+                        .font(.headline)
+                        .foregroundStyle(AnatomyTheme.background)
+                        .padding(.horizontal, 18)
+                        .frame(height: 48)
+                        .background(.white, in: Capsule())
+                }
+            }
+            .padding(22)
+        }
+        .frame(height: 330)
+        .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .stroke(.white.opacity(0.12))
+        }
+        .shadow(color: AnatomyTheme.heart.opacity(0.22), radius: 28, y: 18)
+    }
+}
+
+private struct QuickStatsRow: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            QuickStat(value: "3", label: "day streak", symbol: "flame.fill", color: .orange)
+            QuickStat(value: "80%", label: "quiz avg.", symbol: "checkmark.seal.fill", color: AnatomyTheme.teal)
+            QuickStat(value: "5", label: "saved", symbol: "bookmark.fill", color: AnatomyTheme.brain)
         }
     }
 }
 
-private struct StatisticTile: View {
+private struct QuickStat: View {
     let value: String
     let label: String
-    let icon: String
+    let symbol: String
+    let color: Color
 
-    var body: some View {
-        VStack(spacing: 5) {
-            Image(systemName: icon)
-                .foregroundStyle(AnatomyTheme.teal)
-            Text(value)
-                .font(.title3)
-                .fontWeight(.bold)
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(AnatomyTheme.textSecondary)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity, minHeight: 100)
-        .anatomyCard()
-    }
-}
-
-private struct RecommendedLessonCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Recommended Next")
-                .font(.title2)
-                .fontWeight(.bold)
-
-            Label("Heart Valves", systemImage: "sparkles")
-                .font(.headline)
-                .foregroundStyle(AnatomyTheme.heart)
-
-            Text("Continue your current topic and learn how valves keep blood moving forward.")
-                .font(.subheadline)
+            Image(systemName: symbol)
+                .foregroundStyle(color)
+            Text(value)
+                .font(.title2.weight(.bold))
+            Text(label)
+                .font(.caption)
                 .foregroundStyle(AnatomyTheme.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -130,23 +139,43 @@ private struct RecommendedLessonCard: View {
     }
 }
 
-private struct HomeProgressCard: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Your Heart Progress")
-                .font(.title2)
-                .fontWeight(.bold)
+private struct OrganJourneySection: View {
+    let appState: AppState
 
-            OrganProgressView(
-                title: "Heart",
-                symbolName: "heart.fill",
-                progress: 0.6,
-                color: AnatomyTheme.heart,
-                completedLessons: 3,
-                totalLessons: 5,
-                bestQuizScore: 80
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            SectionTitle(
+                "Your anatomy journey",
+                eyebrow: "PROGRESS",
+                subtitle: "Every lesson colours in a little more."
             )
+
+            ForEach(SampleAnatomyData.organs) { organ in
+                NavigationLink {
+                    OrganOverviewView(organ: organ)
+                } label: {
+                    HStack(spacing: 14) {
+                        OrganArtworkView(organID: organ.id, size: 74, showsGlow: false)
+                        VStack(alignment: .leading, spacing: 7) {
+                            Text(organ.title)
+                                .font(.headline)
+                                .foregroundStyle(AnatomyTheme.textPrimary)
+                            ProgressView(value: appState.progress(for: organ))
+                                .tint(AnatomyTheme.organColor(for: organ.id))
+                            Text(
+                                appState.progress(for: organ),
+                                format: .percent.precision(.fractionLength(0))
+                            )
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(AnatomyTheme.organColor(for: organ.id))
+                        }
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(AnatomyTheme.textSecondary)
+                    }
+                    .anatomyCard()
+                }
+                .buttonStyle(.plain)
+            }
         }
-        .anatomyCard()
     }
 }

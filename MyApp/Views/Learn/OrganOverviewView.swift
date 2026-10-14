@@ -1,130 +1,156 @@
 import SwiftUI
 
 struct OrganOverviewView: View {
+    @Environment(AppState.self) private var appState
     let organ: Organ
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                OrganOverviewHeader(organ: organ)
-                LessonListSection(lessons: organ.lessons)
-                QuizStartCard(organTitle: organ.title)
+            LazyVStack(alignment: .leading, spacing: 24) {
+                OrganOverviewHero(organ: organ, progress: appState.progress(for: organ))
+                LessonPathSection(organ: organ, appState: appState)
+                QuizLaunchCard(organTitle: organ.title, organID: organ.id)
             }
-            .padding()
+            .padding(.bottom, 28)
         }
-        .navigationTitle(organ.title)
-        .navigationBarTitleDisplayMode(.inline)
+        .ignoresSafeArea(edges: .top)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .anatomyScreenBackground()
     }
 }
 
-private struct OrganOverviewHeader: View {
+private struct OrganOverviewHero: View {
     let organ: Organ
+    let progress: Double
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(organ.title)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    Text(organ.systemName)
-                        .foregroundStyle(AnatomyTheme.textSecondary)
-                }
+        ZStack(alignment: .bottomLeading) {
+            Rectangle()
+                .fill(AnatomyTheme.organGradient(for: organ.id))
+            OrganArtworkView(organID: organ.id, size: 300)
+                .offset(x: 115, y: -30)
 
-                Spacer()
-                StatusBadge(title: "AR READY", systemImage: "arkit", color: AnatomyTheme.organColor(for: organ.id))
-            }
-
-            OrganProgressView(
-                title: organ.title,
-                symbolName: organ.symbolName,
-                progress: organ.progress,
-                color: AnatomyTheme.organColor(for: organ.id),
-                completedLessons: organ.completedLessonCount,
-                totalLessons: organ.lessons.count,
-                bestQuizScore: organ.bestQuizScore
+            LinearGradient(
+                colors: [.clear, AnatomyTheme.background.opacity(0.95)],
+                startPoint: .center,
+                endPoint: .bottom
             )
 
-            Text(organ.description)
-                .font(.body)
-                .foregroundStyle(AnatomyTheme.textSecondary)
+            VStack(alignment: .leading, spacing: 10) {
+                StatusBadge(title: organ.systemName.uppercased(), systemImage: "sparkles", color: .white)
+                Spacer()
+                Text(organ.title)
+                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                Text(organ.description)
+                    .foregroundStyle(.white.opacity(0.72))
+                    .frame(maxWidth: 270, alignment: .leading)
+                ProgressView(value: progress)
+                    .tint(AnatomyTheme.organColor(for: organ.id))
+                    .frame(maxWidth: 260)
+                Text(progress, format: .percent.precision(.fractionLength(0)))
+                    .font(.headline)
+                    .foregroundStyle(AnatomyTheme.organColor(for: organ.id))
+            }
+            .padding(20)
+            .padding(.top, 42)
         }
-        .anatomyCard()
+        .frame(height: 430)
     }
 }
 
-private struct LessonListSection: View {
-    let lessons: [AnatomyLesson]
+private struct LessonPathSection: View {
+    let organ: Organ
+    let appState: AppState
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Guided Lessons")
-                .font(.title2)
-                .fontWeight(.bold)
+        VStack(alignment: .leading, spacing: 16) {
+            SectionTitle(
+                "Learning path",
+                eyebrow: "\(organ.lessons.count) SHORT LESSONS",
+                subtitle: "Move from foundations to confident recall."
+            )
 
-            ForEach(lessons) { lesson in
+            ForEach(organ.lessons) { lesson in
                 NavigationLink {
                     LessonDetailView(lesson: lesson)
                 } label: {
-                    LessonRow(lesson: lesson)
+                    ModernLessonRow(
+                        lesson: lesson,
+                        color: AnatomyTheme.organColor(for: organ.id),
+                        isCompleted: appState.isLessonComplete(lesson.id)
+                    )
                 }
                 .buttonStyle(.plain)
             }
         }
+        .padding(.horizontal, 20)
     }
 }
 
-private struct LessonRow: View {
+private struct ModernLessonRow: View {
     let lesson: AnatomyLesson
+    let color: Color
+    let isCompleted: Bool
 
     var body: some View {
-        HStack(spacing: 14) {
-            Text(lesson.number, format: .number.precision(.integerLength(2)))
-                .font(.headline)
-                .monospacedDigit()
-                .foregroundStyle(AnatomyTheme.teal)
+        HStack(spacing: 15) {
+            ZStack {
+                Circle().fill(color.opacity(0.14))
+                Text(lesson.number, format: .number.precision(.integerLength(2)))
+                    .font(.caption.monospaced().weight(.bold))
+                    .foregroundStyle(color)
+            }
+            .frame(width: 48, height: 48)
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(lesson.title)
-                    .font(.headline)
-                Text(lesson.status.rawValue)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(lesson.title).font(.headline).foregroundStyle(.white)
+                Text("\(lesson.durationMinutes) min · \(lesson.structureCount) structures")
                     .font(.caption)
                     .foregroundStyle(AnatomyTheme.textSecondary)
             }
-
             Spacer()
-
-            Image(systemName: lesson.status.symbolName)
-                .foregroundStyle(lesson.status == .completed ? AnatomyTheme.teal : AnatomyTheme.textSecondary)
+            Image(systemName: isCompleted ? "checkmark.circle.fill" : lesson.status.symbolName)
+                .foregroundStyle(isCompleted ? color : AnatomyTheme.textSecondary)
         }
         .anatomyCard()
     }
 }
 
-private struct QuizStartCard: View {
+private struct QuizLaunchCard: View {
     let organTitle: String
+    let organID: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("\(organTitle) Quiz", systemImage: "questionmark.circle.fill")
-                .font(.title3)
-                .fontWeight(.bold)
-
-            Text("Five quick questions to check your understanding.")
-                .foregroundStyle(AnatomyTheme.textSecondary)
-
-            NavigationLink {
-                QuizQuestionView(question: SampleAnatomyData.quizQuestion)
-            } label: {
-                Text("Start Quiz")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .frame(minHeight: 46)
-                    .foregroundStyle(.white)
-                    .background(AnatomyTheme.teal, in: RoundedRectangle(cornerRadius: 12))
+        ZStack(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 28)
+                .fill(AnatomyTheme.organGradient(for: organID))
+            OrganArtworkView(organID: organID, size: 130, showsGlow: false)
+                .offset(x: 220, y: 30)
+                .opacity(0.65)
+            VStack(alignment: .leading, spacing: 10) {
+                Label("KNOWLEDGE CHECK", systemImage: "bolt.fill")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(AnatomyTheme.organColor(for: organID))
+                Text("\(organTitle) quiz")
+                    .font(.title2.weight(.bold))
+                Text("Five quick questions · about 3 minutes")
+                    .font(.subheadline)
+                    .foregroundStyle(AnatomyTheme.textSecondary)
+                NavigationLink {
+                    QuizQuestionView(question: SampleAnatomyData.quizQuestion)
+                } label: {
+                    Text("Start quiz")
+                        .font(.headline)
+                        .foregroundStyle(AnatomyTheme.background)
+                        .padding(.horizontal, 18)
+                        .frame(height: 44)
+                        .background(.white, in: Capsule())
+                }
             }
+            .padding(22)
         }
-        .anatomyCard()
+        .frame(height: 190)
+        .clipShape(RoundedRectangle(cornerRadius: 28))
+        .padding(.horizontal, 20)
     }
 }

@@ -14,7 +14,7 @@ struct OrganProgressView: View {
     }
 
     var body: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: 18) {
             OrganFillSymbol(
                 symbolName: symbolName,
                 progress: safeProgress,
@@ -27,9 +27,13 @@ struct OrganProgressView: View {
                     .fontWeight(.bold)
                     .foregroundStyle(AnatomyTheme.textPrimary)
 
-                Text(safeProgress, format: .percent.precision(.fractionLength(0)))
-                    .font(.headline)
-                    .foregroundStyle(color)
+                HStack {
+                    Text(safeProgress, format: .percent.precision(.fractionLength(0)))
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(color)
+                    Text("complete")
+                        .foregroundStyle(AnatomyTheme.textSecondary)
+                }
 
                 Text("\(completedLessons) of \(totalLessons) lessons completed")
                 Text("Best Quiz: \(bestQuizScore)%")
@@ -66,7 +70,8 @@ private struct OrganFillSymbol: View {
                     }
             }
         }
-        .frame(width: 92, height: 92)
+        .frame(width: 84, height: 84)
+        .background(color.opacity(0.1), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .accessibilityHidden(true)
     }
 

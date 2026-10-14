@@ -108,8 +108,13 @@ private struct QuizOptionRow: View {
 }
 
 struct QuizFeedbackView: View {
+    @Environment(AppState.self) private var appState
     let question: QuizQuestion
     let wasCorrect: Bool
+
+    private var organID: String {
+        question.organTitle.lowercased()
+    }
 
     var body: some View {
         ScrollView {
@@ -139,7 +144,11 @@ struct QuizFeedbackView: View {
                 )
 
                 NavigationLink {
-                    QuizResultView()
+                    QuizResultView(
+                        correctAnswers: wasCorrect ? 1 : 0,
+                        totalQuestions: 1,
+                        organID: organID
+                    )
                 } label: {
                     Text("Next Question")
                         .fontWeight(.semibold)
@@ -154,6 +163,13 @@ struct QuizFeedbackView: View {
         .navigationTitle("Answer Feedback")
         .navigationBarTitleDisplayMode(.inline)
         .anatomyScreenBackground()
+        .task {
+            appState.recordQuizResult(
+                organID: organID,
+                correctAnswers: wasCorrect ? 1 : 0,
+                totalQuestions: 1
+            )
+        }
     }
 }
 
@@ -176,6 +192,19 @@ private struct FeedbackCard: View {
 }
 
 struct QuizResultView: View {
+    let correctAnswers: Int
+    let totalQuestions: Int
+    let organID: String
+
+    private var score: Int {
+        guard totalQuestions > 0 else { return 0 }
+        return Int((Double(correctAnswers) / Double(totalQuestions) * 100).rounded())
+    }
+
+    private var organ: Organ {
+        SampleAnatomyData.organs.first { $0.id == organID } ?? SampleAnatomyData.heart
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 22) {
@@ -187,17 +216,17 @@ struct QuizResultView: View {
                     Text("Quiz Complete")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                    Text("80%")
+                    Text("\(score)%")
                         .font(.system(size: 54, weight: .bold))
                         .foregroundStyle(AnatomyTheme.teal)
-                    Text("4 of 5 correct")
+                    Text("\(correctAnswers) of \(totalQuestions) correct")
                         .foregroundStyle(AnatomyTheme.textSecondary)
                 }
 
                 HStack {
-                    ResultStatistic(value: "4", label: "Correct")
-                    ResultStatistic(value: "1", label: "Review")
-                    ResultStatistic(value: "80%", label: "Best")
+                    ResultStatistic(value: "\(correctAnswers)", label: "Correct")
+                    ResultStatistic(value: "\(totalQuestions - correctAnswers)", label: "Review")
+                    ResultStatistic(value: "\(score)%", label: "Score")
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -209,13 +238,20 @@ struct QuizResultView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .anatomyCard()
 
-                PrimaryButton("Review Answers", systemImage: "doc.text.magnifyingglass") { }
-                PrimaryButton("Retry Quiz", systemImage: "arrow.clockwise") { }
+                NavigationLink {
+                    QuizQuestionView(question: SampleAnatomyData.quizQuestion)
+                } label: {
+                    Label("Retry Quiz", systemImage: "arrow.clockwise")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                        .foregroundStyle(.white)
+                        .background(AnatomyTheme.teal, in: RoundedRectangle(cornerRadius: 14))
+                }
 
                 NavigationLink {
-                    OrganOverviewView(organ: SampleAnatomyData.heart)
+                    OrganOverviewView(organ: organ)
                 } label: {
-                    Text("Back to Heart")
+                    Text("Back to \(organ.title)")
                         .fontWeight(.semibold)
                         .foregroundStyle(AnatomyTheme.teal)
                 }

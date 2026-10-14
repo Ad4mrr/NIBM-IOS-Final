@@ -1,97 +1,106 @@
 import SwiftUI
 
 struct AnatomyLibraryView: View {
-    @State private var searchText = ""
-
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                Text("Explore Anatomy")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-
-                NavigationLink {
-                    SearchView()
-                } label: {
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                        Text("Search organs, lessons and structures")
-                        Spacer()
-                    }
-                    .foregroundStyle(AnatomyTheme.textSecondary)
-                    .padding()
-                    .background(AnatomyTheme.surface, in: RoundedRectangle(cornerRadius: 14))
-                }
+            LazyVStack(alignment: .leading, spacing: 22) {
+                LibraryHeader()
 
                 ForEach(SampleAnatomyData.organs) { organ in
                     NavigationLink {
                         OrganOverviewView(organ: organ)
                     } label: {
-                        OrganLibraryCard(organ: organ)
+                        OrganDiscoveryCard(organ: organ)
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding()
+            .padding(.horizontal, 20)
+            .padding(.bottom, 32)
         }
-        .navigationTitle("Learn")
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                NavigationLink {
-                    FavouritesView()
-                } label: {
-                    Image(systemName: "bookmark")
-                }
-                .accessibilityLabel("Saved structures")
-            }
-        }
+        .toolbar(.hidden, for: .navigationBar)
         .anatomyScreenBackground()
     }
 }
 
-private struct OrganLibraryCard: View {
-    let organ: Organ
-
+private struct LibraryHeader: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 18) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(organ.title.uppercased())
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    Text(organ.systemName)
-                        .font(.subheadline)
-                        .foregroundStyle(AnatomyTheme.textSecondary)
-                }
-
+                SectionTitle(
+                    "Explore the human body",
+                    eyebrow: "ANATOMY LIBRARY",
+                    subtitle: "Choose a system and learn it layer by layer."
+                )
                 Spacer()
-
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(.tertiary)
+                NavigationLink {
+                    FavouritesView()
+                } label: {
+                    Image(systemName: "bookmark.fill")
+                        .frame(width: 44, height: 44)
+                        .background(AnatomyTheme.surfaceStrong, in: Circle())
+                }
+                .accessibilityLabel("Saved structures")
             }
 
-            HStack(spacing: 8) {
-                StatusBadge(title: "\(organ.lessons.count) lessons", systemImage: "book.closed")
-                StatusBadge(title: "AR", systemImage: "arkit")
-                StatusBadge(title: "Quiz", systemImage: "questionmark.circle")
+            NavigationLink {
+                SearchView()
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "magnifyingglass")
+                    Text("Search organs, lessons, structures")
+                    Spacer()
+                    Image(systemName: "slider.horizontal.3")
+                }
+                .font(.subheadline)
+                .foregroundStyle(AnatomyTheme.textSecondary)
+                .padding(.horizontal, 16)
+                .frame(height: 52)
+                .background(AnatomyTheme.surface, in: RoundedRectangle(cornerRadius: 18))
+                .overlay { RoundedRectangle(cornerRadius: 18).stroke(.white.opacity(0.08)) }
             }
-
-            OrganProgressView(
-                title: organ.title,
-                symbolName: organ.symbolName,
-                progress: organ.progress,
-                color: AnatomyTheme.organColor(for: organ.id),
-                completedLessons: organ.completedLessonCount,
-                totalLessons: organ.lessons.count,
-                bestQuizScore: organ.bestQuizScore
-            )
         }
-        .anatomyCard()
+        .padding(.top, 14)
     }
 }
 
-#Preview {
-    NavigationStack {
-        AnatomyLibraryView()
+private struct OrganDiscoveryCard: View {
+    let organ: Organ
+
+    var body: some View {
+        ZStack(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(AnatomyTheme.organGradient(for: organ.id))
+
+            OrganArtworkView(organID: organ.id, size: 190)
+                .offset(x: 180, y: 15)
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text(organ.systemName.uppercased())
+                    .font(.caption2.weight(.bold))
+                    .tracking(1.2)
+                    .foregroundStyle(AnatomyTheme.organColor(for: organ.id))
+                Text(organ.title)
+                    .font(.largeTitle.weight(.bold))
+                    .foregroundStyle(.white)
+                Text(organ.description)
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.7))
+                    .frame(maxWidth: 190, alignment: .leading)
+
+                Spacer()
+
+                HStack {
+                    Label("\(organ.lessons.count) lessons", systemImage: "book.closed.fill")
+                    Label("Quiz", systemImage: "checkmark.circle.fill")
+                }
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.82))
+            }
+            .padding(22)
+        }
+        .frame(height: 250)
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .overlay { RoundedRectangle(cornerRadius: 28).stroke(.white.opacity(0.1)) }
     }
 }

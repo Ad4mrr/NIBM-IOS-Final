@@ -75,18 +75,18 @@ private struct OnboardingFeatureRow: View {
 }
 
 struct ProfileSetupView: View {
-    @State private var learnerName = "Ravindu"
-    @State private var studyLevel = "Foundation"
-    @State private var dailyGoal = 10
+    @Environment(AppState.self) private var appState
 
     private let levels = ["School", "Foundation", "Undergraduate", "General Interest"]
 
     var body: some View {
+        @Bindable var appState = appState
+
         Form {
             Section("Your profile") {
-                TextField("Preferred name", text: $learnerName)
+                TextField("Preferred name", text: $appState.learnerName)
 
-                Picker("Study level", selection: $studyLevel) {
+                Picker("Study level", selection: $appState.studyLevel) {
                     ForEach(levels, id: \.self) { level in
                         Text(level).tag(level)
                     }
@@ -94,12 +94,17 @@ struct ProfileSetupView: View {
             }
 
             Section("Study goal") {
-                Stepper("\(dailyGoal) minutes per day", value: $dailyGoal, in: 5...30, step: 5)
+                Stepper(
+                    "\(appState.dailyGoalMinutes) minutes per day",
+                    value: $appState.dailyGoalMinutes,
+                    in: 5...30,
+                    step: 5
+                )
             }
 
             Section {
-                NavigationLink {
-                    MainTabView()
+                Button {
+                    appState.finishOnboarding()
                 } label: {
                     Text("Start Learning")
                         .fontWeight(.semibold)
@@ -109,5 +114,6 @@ struct ProfileSetupView: View {
         }
         .navigationTitle("Set Up Your Profile")
         .navigationBarTitleDisplayMode(.inline)
+        .preferredColorScheme(.dark)
     }
 }

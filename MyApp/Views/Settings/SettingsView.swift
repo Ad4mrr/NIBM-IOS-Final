@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(AppState.self) private var appState
     @State private var useBiometrics = false
     @State private var largerStudyText = false
 
@@ -13,9 +14,9 @@ struct SettingsView: View {
                         .foregroundStyle(AnatomyTheme.teal)
 
                     VStack(alignment: .leading) {
-                        Text("Ravindu")
+                        Text(appState.learnerName)
                             .font(.headline)
-                        Text("Foundation learner")
+                        Text("\(appState.studyLevel) learner")
                             .font(.subheadline)
                             .foregroundStyle(AnatomyTheme.textSecondary)
                     }
@@ -63,7 +64,14 @@ struct SettingsView: View {
                 LabeledContent("Application", value: "AnatomyAR")
                 LabeledContent("Phase", value: "Static UI")
             }
+
+            Section {
+                Button("Sign Out", role: .destructive) {
+                    appState.signOut()
+                }
+            }
         }
         .navigationTitle("Profile & Settings")
+        .preferredColorScheme(.dark)
     }
 }

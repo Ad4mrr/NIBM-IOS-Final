@@ -4,12 +4,12 @@ struct AnatomyCardStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(18)
-            .background(AnatomyTheme.surface, in: RoundedRectangle(cornerRadius: 20))
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.black.opacity(0.05))
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(Color.white.opacity(0.1))
             }
-            .shadow(color: Color.black.opacity(0.05), radius: 10, y: 4)
+            .shadow(color: Color.black.opacity(0.22), radius: 20, y: 12)
     }
 }
 
@@ -19,6 +19,7 @@ extension View {
     }
 
     func anatomyScreenBackground() -> some View {
-        background(AnatomyTheme.background.ignoresSafeArea())
+        background(AnatomyTheme.backgroundGradient.ignoresSafeArea())
+            .preferredColorScheme(.dark)
     }
 }

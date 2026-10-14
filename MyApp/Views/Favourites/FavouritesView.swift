@@ -1,14 +1,20 @@
 import SwiftUI
 
 struct FavouritesView: View {
-    @State private var showEmptyState = false
+    @Environment(AppState.self) private var appState
+
+    private var visibleFavourites: [SavedStructure] {
+        SampleAnatomyData.favourites.filter {
+            appState.isFavourite($0.id)
+        }
+    }
 
     var body: some View {
         VStack {
-            if showEmptyState {
+            if visibleFavourites.isEmpty {
                 EmptyFavouritesView()
             } else {
-                List(SampleAnatomyData.favourites) { favourite in
+                List(visibleFavourites) { favourite in
                     NavigationLink {
                         StructureDetailView(structure: SampleAnatomyData.aorticValve)
                     } label: {
@@ -19,13 +25,7 @@ struct FavouritesView: View {
             }
         }
         .navigationTitle("Saved Structures")
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(showEmptyState ? "Show Saved" : "Show Empty") {
-                    showEmptyState.toggle()
-                }
-            }
-        }
+        .preferredColorScheme(.dark)
     }
 }
 

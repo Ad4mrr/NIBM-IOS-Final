@@ -12,6 +12,7 @@ struct StatusBadge: View {
             .foregroundStyle(color)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .background(color.opacity(0.12), in: Capsule())
+            .background(color.opacity(0.14), in: Capsule())
+            .overlay { Capsule().stroke(color.opacity(0.25)) }
     }
 }

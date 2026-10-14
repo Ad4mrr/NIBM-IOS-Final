@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct StructureDetailView: View {
+    @Environment(AppState.self) private var appState
     let structure: AnatomyStructure
 
     var body: some View {
@@ -10,7 +11,12 @@ struct StructureDetailView: View {
                 StructureInformation(title: "STRUCTURE", text: structure.pathway)
                 StructureInformation(title: "FUNCTION", text: structure.functionDescription)
                 StructureTags(tags: structure.tags)
-                StructureActions()
+                StructureActions(
+                    isSaved: appState.isFavourite(structure.id),
+                    toggleSaved: {
+                        appState.toggleFavourite(structure.id)
+                    }
+                )
             }
             .padding()
         }
@@ -77,9 +83,16 @@ private struct StructureTags: View {
 }
 
 private struct StructureActions: View {
+    let isSaved: Bool
+    let toggleSaved: () -> Void
+
     var body: some View {
         VStack(spacing: 12) {
-            PrimaryButton("Save Structure", systemImage: "bookmark") { }
+            PrimaryButton(
+                isSaved ? "Remove from Saved" : "Save Structure",
+                systemImage: isSaved ? "bookmark.slash.fill" : "bookmark.fill",
+                action: toggleSaved
+            )
 
             NavigationLink {
                 ARPlaceholderView()

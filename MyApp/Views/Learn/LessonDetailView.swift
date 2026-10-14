@@ -1,18 +1,29 @@
 import SwiftUI
 
 struct LessonDetailView: View {
+    @Environment(AppState.self) private var appState
     let lesson: AnatomyLesson
+
+    private var organID: String {
+        lesson.id.components(separatedBy: "-").first ?? "heart"
+    }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                LessonHeroSection(lesson: lesson)
-                LessonTakeawaySection(text: lesson.keyTakeaway)
-                LessonExplanationSection()
-                RelatedStructuresSection()
-                LessonActions()
+            LazyVStack(alignment: .leading, spacing: 24) {
+                LessonHeader(lesson: lesson, organID: organID)
+                MotionLessonCard(organID: organID)
+                LessonTakeaway(text: lesson.keyTakeaway, color: AnatomyTheme.organColor(for: organID))
+                LessonConcepts(organID: organID)
+                LessonFooterActions(
+                    isCompleted: appState.isLessonComplete(lesson.id),
+                    toggleCompletion: {
+                        appState.toggleLessonCompletion(lesson.id)
+                    }
+                )
             }
-            .padding()
+            .padding(20)
+            .padding(.bottom, 24)
         }
         .navigationTitle(lesson.title)
         .navigationBarTitleDisplayMode(.inline)
@@ -20,143 +31,136 @@ struct LessonDetailView: View {
     }
 }
 
-private struct LessonHeroSection: View {
+private struct LessonHeader: View {
     let lesson: AnatomyLesson
+    let organID: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Lesson \(lesson.number) of 5")
-                .font(.subheadline)
-                .foregroundStyle(AnatomyTheme.heart)
+        HStack(alignment: .center, spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("LESSON \(lesson.number)")
+                    .font(.caption.weight(.bold))
+                    .tracking(1.4)
+                    .foregroundStyle(AnatomyTheme.organColor(for: organID))
+                Text(lesson.title)
+                    .font(.largeTitle.weight(.bold))
+                Text(lesson.summary)
+                    .foregroundStyle(AnatomyTheme.textSecondary)
+                Label("\(lesson.durationMinutes) min", systemImage: "clock.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AnatomyTheme.textSecondary)
+            }
+            Spacer()
+            OrganArtworkView(organID: organID, size: 112)
+        }
+    }
+}
 
-            Text(lesson.title)
-                .font(.largeTitle)
-                .fontWeight(.bold)
+private struct MotionLessonCard: View {
+    let organID: String
+    @State private var isPlaying = false
+    @State private var pulse = false
 
-            ZStack {
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(AnatomyTheme.heart.opacity(0.12))
-                    .frame(height: 190)
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 28)
+                .fill(AnatomyTheme.organGradient(for: organID))
 
-                VStack(spacing: 12) {
-                    Image(systemName: "arrow.trianglehead.2.clockwise.rotate.90.heart.fill")
-                        .font(.system(size: 64))
-                        .foregroundStyle(AnatomyTheme.heart)
-                    Text("One-way blood flow")
+            Circle()
+                .stroke(AnatomyTheme.organColor(for: organID).opacity(0.42), lineWidth: 2)
+                .frame(width: pulse ? 230 : 150)
+                .opacity(pulse ? 0 : 0.8)
+
+            OrganArtworkView(organID: organID, size: 205)
+                .scaleEffect(isPlaying && organID == "heart" ? (pulse ? 1.04 : 0.98) : 1)
+
+            VStack {
+                HStack {
+                    Label("MOTION LESSON", systemImage: "play.rectangle.fill")
+                        .font(.caption.weight(.bold))
+                    Spacer()
+                    Text("00:48")
+                        .font(.caption.monospacedDigit())
+                }
+                .foregroundStyle(.white.opacity(0.76))
+                Spacer()
+                Button {
+                    isPlaying.toggle()
+                    pulse = false
+                    if isPlaying {
+                        withAnimation(.easeOut(duration: 1.2).repeatForever(autoreverses: false)) {
+                            pulse = true
+                        }
+                    }
+                } label: {
+                    Label(isPlaying ? "Pause animation" : "Play anatomy motion", systemImage: isPlaying ? "pause.fill" : "play.fill")
                         .font(.headline)
+                        .foregroundStyle(AnatomyTheme.background)
+                        .padding(.horizontal, 18)
+                        .frame(height: 48)
+                        .background(.white, in: Capsule())
                 }
             }
-
-            HStack {
-                LessonStat(value: "\(lesson.structureCount)", label: "structures")
-                LessonStat(value: "\(lesson.durationMinutes) min", label: "duration")
-                LessonStat(value: "1", label: "quiz")
-            }
+            .padding(18)
         }
+        .frame(height: 320)
+        .clipShape(RoundedRectangle(cornerRadius: 28))
+        .overlay { RoundedRectangle(cornerRadius: 28).stroke(.white.opacity(0.12)) }
+        .accessibilityElement(children: .contain)
     }
 }
 
-private struct LessonStat: View {
-    let value: String
-    let label: String
-
-    var body: some View {
-        VStack {
-            Text(value)
-                .font(.headline)
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(AnatomyTheme.textSecondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
-        .background(AnatomyTheme.surface, in: RoundedRectangle(cornerRadius: 12))
-    }
-}
-
-private struct LessonTakeawaySection: View {
+private struct LessonTakeaway: View {
     let text: String
+    let color: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("Key Takeaway", systemImage: "lightbulb.fill")
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Remember this", systemImage: "lightbulb.max.fill")
                 .font(.headline)
-                .foregroundStyle(AnatomyTheme.teal)
+                .foregroundStyle(color)
             Text(text)
-                .font(.title3)
-                .fontWeight(.semibold)
+                .font(.title3.weight(.semibold))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .anatomyCard()
     }
 }
 
-private struct LessonExplanationSection: View {
+private struct LessonConcepts: View {
+    let organID: String
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("How the valves work")
-                .font(.title2)
-                .fontWeight(.bold)
-
-            Text("Four valves open and close as pressure changes inside the heart. This keeps blood moving through the chambers in the correct direction.")
-                .foregroundStyle(AnatomyTheme.textSecondary)
-
-            Label("Valves open when pressure behind them is greater.", systemImage: "1.circle.fill")
-            Label("They close when pressure begins to reverse.", systemImage: "2.circle.fill")
+        VStack(alignment: .leading, spacing: 14) {
+            SectionTitle("How it works", eyebrow: "CORE CONCEPT")
+            Label("Structures work together as one coordinated system.", systemImage: "1.circle.fill")
+            Label("Direction and timing keep the process efficient.", systemImage: "2.circle.fill")
+            Label("Tap related structures to build spatial understanding.", systemImage: "3.circle.fill")
         }
+        .foregroundStyle(AnatomyTheme.textPrimary)
         .anatomyCard()
     }
 }
 
-private struct RelatedStructuresSection: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Related Structures")
-                .font(.title2)
-                .fontWeight(.bold)
+private struct LessonFooterActions: View {
+    let isCompleted: Bool
+    let toggleCompletion: () -> Void
 
-            NavigationLink {
-                StructureDetailView(structure: SampleAnatomyData.aorticValve)
-            } label: {
-                HStack {
-                    Image(systemName: "heart.circle.fill")
-                        .font(.title2)
-                        .foregroundStyle(AnatomyTheme.heart)
-                    VStack(alignment: .leading) {
-                        Text("Aortic Valve")
-                            .font(.headline)
-                        Text("Left ventricle → Aorta")
-                            .font(.subheadline)
-                            .foregroundStyle(AnatomyTheme.textSecondary)
-                    }
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.tertiary)
-                }
-            }
-            .buttonStyle(.plain)
-        }
-        .anatomyCard()
-    }
-}
-
-private struct LessonActions: View {
     var body: some View {
         VStack(spacing: 12) {
-            PrimaryButton("Mark Complete", systemImage: "checkmark.circle") { }
-
+            PrimaryButton(
+                isCompleted ? "Mark as incomplete" : "Mark lesson complete",
+                systemImage: isCompleted ? "arrow.uturn.backward.circle" : "checkmark.circle.fill",
+                action: toggleCompletion
+            )
             NavigationLink {
                 ARPlaceholderView()
             } label: {
-                Label("Explore in AR", systemImage: "arkit")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .frame(minHeight: 48)
+                Label("Preview in AR Lab", systemImage: "arkit")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, minHeight: 50)
                     .foregroundStyle(AnatomyTheme.teal)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(AnatomyTheme.teal)
-                    }
+                    .overlay { RoundedRectangle(cornerRadius: 16).stroke(AnatomyTheme.teal.opacity(0.6)) }
             }
         }
     }

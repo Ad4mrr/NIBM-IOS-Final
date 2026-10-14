@@ -26,7 +26,15 @@ struct PrimaryButton: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(.white)
-        .background(AnatomyTheme.teal, in: RoundedRectangle(cornerRadius: 14))
+        .background(
+            LinearGradient(
+                colors: [AnatomyTheme.teal, AnatomyTheme.darkTeal],
+                startPoint: .leading,
+                endPoint: .trailing
+            ),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
+        .shadow(color: AnatomyTheme.teal.opacity(0.25), radius: 14, y: 8)
         .contentShape(Rectangle())
     }
 }
