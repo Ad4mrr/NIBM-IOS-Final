@@ -76,6 +76,7 @@ private struct OnboardingFeatureRow: View {
 
 struct ProfileSetupView: View {
     @Environment(AppState.self) private var appState
+    @Environment(FirebaseService.self) private var firebaseService
 
     private let levels = ["School", "Foundation", "Undergraduate", "General Interest"]
 
@@ -104,11 +105,32 @@ struct ProfileSetupView: View {
 
             Section {
                 Button {
-                    appState.finishOnboarding()
+                    Task {
+                        let saved = await firebaseService.saveCurrentLearnerProfile(
+                            name: appState.learnerName,
+                            studyLevel: appState.studyLevel,
+                            dailyGoalMinutes: appState.dailyGoalMinutes
+                        )
+
+                        if saved {
+                            appState.finishOnboarding()
+                        }
+                    }
                 } label: {
-                    Text("Start Learning")
-                        .fontWeight(.semibold)
-                        .foregroundStyle(AnatomyTheme.teal)
+                    if firebaseService.isWorking {
+                        ProgressView()
+                    } else {
+                        Text("Start Learning")
+                            .fontWeight(.semibold)
+                            .foregroundStyle(AnatomyTheme.teal)
+                    }
+                }
+                .disabled(firebaseService.isWorking)
+
+                if let errorMessage = firebaseService.errorMessage {
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .foregroundStyle(AnatomyTheme.heart)
                 }
             }
         }

@@ -2,7 +2,8 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
-    @State private var useBiometrics = false
+    @Environment(FirebaseService.self) private var firebaseService
+    @Environment(BiometricService.self) private var biometricService
     @State private var largerStudyText = false
 
     var body: some View {
@@ -35,10 +36,34 @@ struct SettingsView: View {
             }
 
             Section("Security") {
-                Toggle("Use Face ID", isOn: $useBiometrics)
-                Text("Visual placeholder only. Face ID logic is added in Phase 5.")
+                Toggle(
+                    "Use \(biometricService.biometryName)",
+                    isOn: Binding(
+                        get: { biometricService.isEnabled },
+                        set: { shouldEnable in
+                            Task {
+                                await biometricService.setEnabled(shouldEnable)
+                            }
+                        }
+                    )
+                )
+                .disabled(!biometricService.isAvailable)
+
+                if let errorMessage = biometricService.errorMessage {
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .foregroundStyle(AnatomyTheme.heart)
+                } else {
+                    Text(
+                        !biometricService.isAvailable
+                            ? "Biometric authentication is unavailable or not enrolled."
+                            : biometricService.isEnabled
+                                ? "\(biometricService.biometryName) unlock is enabled and saved."
+                                : "Require \(biometricService.biometryName) when reopening the app."
+                    )
                     .font(.footnote)
                     .foregroundStyle(AnatomyTheme.textSecondary)
+                }
             }
 
             Section("Accessibility") {
@@ -62,11 +87,12 @@ struct SettingsView: View {
 
             Section("About") {
                 LabeledContent("Application", value: "AnatomyAR")
-                LabeledContent("Phase", value: "Core Data persistence")
+                LabeledContent("Phase", value: "Face ID security")
             }
 
             Section {
                 Button("Sign Out", role: .destructive) {
+                    firebaseService.signOut()
                     appState.signOut()
                 }
             }

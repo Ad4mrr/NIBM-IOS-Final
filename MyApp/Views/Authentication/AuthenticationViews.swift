@@ -131,6 +131,8 @@ private struct WelcomeFeature: View {
 }
 
 struct SignInView: View {
+    @Environment(AppState.self) private var appState
+    @Environment(FirebaseService.self) private var firebaseService
     @State private var email = ""
     @State private var password = ""
 
@@ -139,6 +141,8 @@ struct SignInView: View {
             title: "Welcome back",
             subtitle: "Continue your anatomy journey",
             actionTitle: "Sign in",
+            isWorking: firebaseService.isWorking,
+            errorMessage: firebaseService.errorMessage,
             fields: {
                 ModernField(title: "Email", symbol: "envelope.fill") {
                     TextField("student@example.com", text: $email)
@@ -150,35 +154,80 @@ struct SignInView: View {
                     SecureField("Enter your password", text: $password)
                         .textContentType(.password)
                 }
+            },
+            action: {
+                let profile = await firebaseService.signIn(
+                    email: email,
+                    password: password
+                )
+
+                guard firebaseService.isAuthenticated else { return }
+
+                if let profile {
+                    appState.applyRemoteProfile(profile)
+                }
+
+                appState.route = .main
             }
         )
+        .onDisappear {
+            firebaseService.clearError()
+        }
     }
 }
 
 struct CreateAccountView: View {
+    @Environment(AppState.self) private var appState
+    @Environment(FirebaseService.self) private var firebaseService
     @State private var name = ""
     @State private var email = ""
     @State private var password = ""
+    @State private var showsOnboarding = false
 
     var body: some View {
         ModernAuthenticationForm(
             title: "Create your profile",
             subtitle: "Set up your learning space in seconds",
             actionTitle: "Create account",
+            isWorking: firebaseService.isWorking,
+            errorMessage: firebaseService.errorMessage,
             fields: {
                 ModernField(title: "Name", symbol: "person.fill") {
-                    TextField("Your name", text: $name).textContentType(.name)
+                    TextField("Your name", text: $name)
+                        .textContentType(.name)
                 }
                 ModernField(title: "Email", symbol: "envelope.fill") {
                     TextField("student@example.com", text: $email)
                         .textContentType(.emailAddress)
                         .textInputAutocapitalization(.never)
+                        .keyboardType(.emailAddress)
                 }
                 ModernField(title: "Password", symbol: "lock.fill") {
-                    SecureField("Create a password", text: $password).textContentType(.newPassword)
+                    SecureField("Create a password", text: $password)
+                        .textContentType(.newPassword)
+                }
+            },
+            action: {
+                let created = await firebaseService.createAccount(
+                    name: name,
+                    email: email,
+                    password: password,
+                    studyLevel: appState.studyLevel,
+                    dailyGoalMinutes: appState.dailyGoalMinutes
+                )
+
+                if created {
+                    appState.learnerName = name
+                    showsOnboarding = true
                 }
             }
         )
+        .navigationDestination(isPresented: $showsOnboarding) {
+            OnboardingIntroductionView()
+        }
+        .onDisappear {
+            firebaseService.clearError()
+        }
     }
 }
 
@@ -186,7 +235,10 @@ private struct ModernAuthenticationForm<Fields: View>: View {
     let title: String
     let subtitle: String
     let actionTitle: String
+    let isWorking: Bool
+    let errorMessage: String?
     @ViewBuilder let fields: Fields
+    let action: () async -> Void
 
     var body: some View {
         ScrollView {
@@ -195,16 +247,34 @@ private struct ModernAuthenticationForm<Fields: View>: View {
                     .frame(maxWidth: .infinity)
                 SectionTitle(title, eyebrow: "YOUR LEARNING SPACE", subtitle: subtitle)
                 VStack(spacing: 14) { fields }
-                NavigationLink {
-                    OnboardingIntroductionView()
-                } label: {
-                    Text(actionTitle)
-                        .font(.headline)
-                        .frame(maxWidth: .infinity, minHeight: 54)
-                        .foregroundStyle(AnatomyTheme.background)
-                        .background(.white, in: RoundedRectangle(cornerRadius: 18))
+
+                if let errorMessage {
+                    Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(AnatomyTheme.heart)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                Text("Demo mode · Authentication will connect in the Firebase phase.")
+
+                Button {
+                    Task {
+                        await action()
+                    }
+                } label: {
+                    HStack {
+                        if isWorking {
+                            ProgressView()
+                                .tint(AnatomyTheme.background)
+                        }
+                        Text(isWorking ? "Please wait…" : actionTitle)
+                    }
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, minHeight: 54)
+                    .foregroundStyle(AnatomyTheme.background)
+                    .background(.white, in: RoundedRectangle(cornerRadius: 18))
+                }
+                .disabled(isWorking)
+
+                Text("Secure authentication powered by Firebase.")
                     .font(.caption)
                     .foregroundStyle(AnatomyTheme.textSecondary)
                     .frame(maxWidth: .infinity)

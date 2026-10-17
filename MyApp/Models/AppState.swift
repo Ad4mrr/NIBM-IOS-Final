@@ -41,6 +41,12 @@ final class AppState {
         route = .main
     }
 
+    func applyRemoteProfile(_ profile: RemoteLearnerProfile) {
+        learnerName = profile.learnerName
+        studyLevel = profile.studyLevel
+        dailyGoalMinutes = profile.dailyGoalMinutes
+    }
+
     func signOut() {
         route = .authentication
     }
