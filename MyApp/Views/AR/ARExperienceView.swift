@@ -11,7 +11,11 @@ struct ARExperienceView: View {
     @State private var resetID = UUID()
 
     private var organName: String {
-        organID == "brain" ? "Brain" : "Heart"
+        switch organID {
+        case "brain": "Brain"
+        case "lungs": "Lungs"
+        default: "Heart"
+        }
     }
 
     var body: some View {
@@ -159,6 +163,7 @@ private struct ARViewContainer: UIViewRepresentable {
         var currentResetID: UUID
         private var hasDetectedPlane = false
         private var placedEntity: ModelEntity?
+        private var isLoadingModel = false
 
         init(parent: ARViewContainer) {
             self.parent = parent
@@ -169,6 +174,7 @@ private struct ARViewContainer: UIViewRepresentable {
             guard let arView else { return }
 
             placedEntity = nil
+            isLoadingModel = false
             hasDetectedPlane = false
             arView.scene.anchors.removeAll()
 
@@ -195,7 +201,7 @@ private struct ARViewContainer: UIViewRepresentable {
                 return
             }
 
-            guard placedEntity == nil else { return }
+            guard placedEntity == nil, !isLoadingModel else { return }
 
             let results = arView.raycast(
                 from: point,
@@ -207,20 +213,37 @@ private struct ARViewContainer: UIViewRepresentable {
                 return
             }
 
-            placeOrgan(at: result.worldTransform)
+            loadAndPlaceOrgan(at: result.worldTransform)
         }
 
-        private func placeOrgan(at transform: simd_float4x4) {
+        private func loadAndPlaceOrgan(at transform: simd_float4x4) {
             guard let arView else { return }
 
-            let anchor = AnchorEntity(world: transform)
-            let organ = ARProceduralOrganFactory.makeOrgan(id: parent.organID)
-            anchor.addChild(organ)
-            arView.scene.addAnchor(anchor)
-            arView.installGestures([.rotation, .scale], for: organ)
+            isLoadingModel = true
+            parent.instruction = "Loading detailed \(parent.organID) model…"
 
-            placedEntity = organ
-            parent.instruction = "Organ placed. Rotate, scale, or tap a glowing hotspot."
+            Task { @MainActor in
+                let organ: ModelEntity
+                do {
+                    organ = try await ARMedicalOrganFactory.makeOrgan(id: parent.organID)
+                } catch {
+                    organ = ARProceduralOrganFactory.makeOrgan(id: parent.organID)
+                    parent.instruction = "The detailed model could not load. Showing the basic fallback."
+                }
+
+                guard self.currentResetID == self.parent.resetID else { return }
+
+                let anchor = AnchorEntity(world: transform)
+                anchor.addChild(organ)
+                arView.scene.addAnchor(anchor)
+                arView.installGestures([.rotation, .scale], for: organ)
+
+                self.placedEntity = organ
+                self.isLoadingModel = false
+                if self.parent.instruction.hasPrefix("Loading") {
+                    self.parent.instruction = "Organ placed. Rotate, scale, or tap a glowing hotspot."
+                }
+            }
         }
 
         private func hotspot(for entity: Entity) -> ARHotspot? {
@@ -247,6 +270,16 @@ private struct ARViewContainer: UIViewRepresentable {
                         title: "Cerebellum",
                         detail: "The cerebellum helps coordinate balance, posture, and precise movement."
                     )
+                case "hotspot-lungs-trachea":
+                    return ARHotspot(
+                        title: "Trachea",
+                        detail: "The trachea carries air from the throat toward the left and right bronchi."
+                    )
+                case "hotspot-lungs-bronchi":
+                    return ARHotspot(
+                        title: "Bronchi",
+                        detail: "The main bronchi branch from the trachea and carry air into each lung."
+                    )
                 default:
                     current = candidate.parent
                 }
@@ -257,9 +290,105 @@ private struct ARViewContainer: UIViewRepresentable {
 }
 
 @MainActor
+private enum ARMedicalOrganFactory {
+    static func makeOrgan(id: String) async throws -> ModelEntity {
+        let assetName: String
+        switch id {
+        case "brain": assetName = "Brain"
+        case "lungs": assetName = "Lungs"
+        default: assetName = "Heart"
+        }
+
+        let loadedEntity = try await Entity(named: assetName)
+        let bounds = loadedEntity.visualBounds(relativeTo: loadedEntity)
+        let largestDimension = max(bounds.extents.x, bounds.extents.y, bounds.extents.z)
+        guard largestDimension > 0 else {
+            throw ARModelError.invalidBounds
+        }
+
+        let container = ModelEntity()
+        container.name = "\(id)-medical-model"
+
+        let scale = Float(0.20) / largestDimension
+        loadedEntity.scale = SIMD3(repeating: scale)
+        loadedEntity.position = -bounds.center * scale
+        applyTissueMaterial(to: loadedEntity, organID: id)
+        container.addChild(loadedEntity)
+
+        addHotspots(for: id, to: container)
+        container.generateCollisionShapes(recursive: true)
+        return container
+    }
+
+    private static func applyTissueMaterial(to entity: Entity, organID: String) {
+        var material = PhysicallyBasedMaterial()
+        material.baseColor = .init(tint: tissueColor(for: organID))
+        material.roughness = .init(floatLiteral: organID == "brain" ? 0.62 : 0.48)
+        material.metallic = .init(floatLiteral: 0)
+        material.clearcoat = .init(floatLiteral: 0.18)
+        material.clearcoatRoughness = .init(floatLiteral: 0.42)
+
+        if var updatedComponent = entity.components[ModelComponent.self] {
+            updatedComponent.materials = Array(
+                repeating: material,
+                count: max(updatedComponent.materials.count, 1)
+            )
+            entity.components.set(updatedComponent)
+        }
+
+        for child in entity.children {
+            applyTissueMaterial(to: child, organID: organID)
+        }
+    }
+
+    private static func tissueColor(for organID: String) -> UIColor {
+        switch organID {
+        case "brain":
+            UIColor(red: 0.76, green: 0.48, blue: 0.47, alpha: 1)
+        case "lungs":
+            UIColor(red: 0.72, green: 0.32, blue: 0.36, alpha: 1)
+        default:
+            UIColor(red: 0.55, green: 0.06, blue: 0.08, alpha: 1)
+        }
+    }
+
+    private static func addHotspots(for organID: String, to parent: Entity) {
+        switch organID {
+        case "brain":
+            addHotspot(named: "hotspot-brain-cerebrum", position: [0.03, 0.075, 0.055], to: parent)
+            addHotspot(named: "hotspot-brain-cerebellum", position: [0, -0.055, -0.07], to: parent)
+        case "lungs":
+            addHotspot(named: "hotspot-lungs-trachea", position: [0, 0.085, 0.025], to: parent)
+            addHotspot(named: "hotspot-lungs-bronchi", position: [0, 0.015, 0.055], to: parent)
+        default:
+            addHotspot(named: "hotspot-heart-aorta", position: [0.02, 0.095, 0.025], to: parent)
+            addHotspot(named: "hotspot-heart-ventricle", position: [0, -0.055, 0.06], to: parent)
+        }
+    }
+
+    private static func addHotspot(named name: String, position: SIMD3<Float>, to parent: Entity) {
+        let hotspot = ModelEntity(
+            mesh: .generateSphere(radius: 0.008),
+            materials: [UnlitMaterial(color: .cyan)]
+        )
+        hotspot.name = name
+        hotspot.position = position
+        parent.addChild(hotspot)
+    }
+
+    private enum ARModelError: Error {
+        case invalidBounds
+    }
+}
+
+@MainActor
 private enum ARProceduralOrganFactory {
     static func makeOrgan(id: String) -> ModelEntity {
-        id == "brain" ? makeBrain() : makeHeart()
+        switch id {
+        case "brain": makeBrain()
+        case "lungs": makeLungs()
+        default: makeHeart()
+        }
     }
 
     private static func makeHeart() -> ModelEntity {
@@ -331,6 +460,27 @@ private enum ARProceduralOrganFactory {
             position: [0, -0.055, -0.08],
             to: root
         )
+        root.generateCollisionShapes(recursive: true)
+        return root
+    }
+
+    private static func makeLungs() -> ModelEntity {
+        let material = SimpleMaterial(color: .systemPink, roughness: 0.55, isMetallic: false)
+        let root = ModelEntity()
+        root.name = "lungs-model"
+
+        let left = ModelEntity(mesh: .generateSphere(radius: 0.055), materials: [material])
+        left.scale = [0.72, 1.25, 0.68]
+        left.position = [-0.047, 0, 0]
+        root.addChild(left)
+
+        let right = ModelEntity(mesh: .generateSphere(radius: 0.055), materials: [material])
+        right.scale = [0.72, 1.25, 0.68]
+        right.position = [0.047, 0, 0]
+        root.addChild(right)
+
+        addHotspot(named: "hotspot-lungs-trachea", position: [0, 0.09, 0.02], to: root)
+        addHotspot(named: "hotspot-lungs-bronchi", position: [0, 0.015, 0.06], to: root)
         root.generateCollisionShapes(recursive: true)
         return root
     }

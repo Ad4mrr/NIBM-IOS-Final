@@ -5,7 +5,10 @@ struct ARPlaceholderView: View {
     @State private var isPresentingAR = false
 
     init(initialOrganID: String = "heart") {
-        _selectedOrganID = State(initialValue: initialOrganID == "brain" ? "brain" : "heart")
+        let supportedOrgans = ["heart", "brain", "lungs"]
+        _selectedOrganID = State(
+            initialValue: supportedOrgans.contains(initialOrganID) ? initialOrganID : "heart"
+        )
     }
 
     private var selectedOrgan: Organ {
@@ -24,7 +27,7 @@ struct ARPlaceholderView: View {
                 ARModelPreview(organ: selectedOrgan)
 
                 HStack(spacing: 10) {
-                    ForEach(SampleAnatomyData.organs.filter { $0.id == "heart" || $0.id == "brain" }) { organ in
+                    ForEach(SampleAnatomyData.organs) { organ in
                         Button {
                             withAnimation(.snappy) {
                                 selectedOrganID = organ.id
@@ -71,7 +74,7 @@ struct ARPlaceholderView: View {
                     isPresentingAR = true
                 }
 
-                Text("The current Heart and Brain geometry is a temporary stand-in. Licensed anatomical USDZ models are still required before final submission.")
+                Text("Heart, Brain and Lungs use licensed anatomical models prepared for RealityKit. Models are for education, not diagnosis.")
                     .font(.footnote)
                     .foregroundStyle(AnatomyTheme.textSecondary)
             }
