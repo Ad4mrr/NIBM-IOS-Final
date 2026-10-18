@@ -15,6 +15,7 @@ struct LessonDetailView: View {
                 MotionLessonCard(organID: organID)
                 LessonTakeaway(text: lesson.keyTakeaway, color: AnatomyTheme.organColor(for: organID))
                 LessonConcepts(organID: organID)
+                StudySessionCard(lesson: lesson, organID: organID)
                 LessonFooterActions(
                     isCompleted: appState.isLessonComplete(lesson.id),
                     toggleCompletion: {
@@ -22,12 +23,70 @@ struct LessonDetailView: View {
                     }
                 )
             }
+            .adaptiveContentWidth(900)
             .padding(20)
             .padding(.bottom, 24)
         }
         .navigationTitle(lesson.title)
         .navigationBarTitleDisplayMode(.inline)
         .anatomyScreenBackground()
+    }
+}
+
+private struct StudySessionCard: View {
+    @Environment(StudyActivityService.self) private var activityService
+    let lesson: AnatomyLesson
+    let organID: String
+
+    private var organName: String {
+        SampleAnatomyData.organs.first { $0.id == organID }?.title ?? "Anatomy"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Live Study Session", systemImage: "timer")
+                .font(.headline)
+                .foregroundStyle(AnatomyTheme.organColor(for: organID))
+
+            Text("Show this lesson timer on the Lock Screen and Dynamic Island.")
+                .font(.subheadline)
+                .foregroundStyle(AnatomyTheme.textSecondary)
+
+            if activityService.isActive {
+                Text("Active: \(activityService.activeLessonTitle ?? "Study session")")
+                    .font(.subheadline.weight(.semibold))
+
+                Button("End Live Activity", role: .destructive) {
+                    Task {
+                        await activityService.endCurrentActivity()
+                    }
+                }
+                .buttonStyle(.bordered)
+            } else {
+                Button {
+                    Task {
+                        await activityService.start(lesson: lesson, organName: organName)
+                    }
+                } label: {
+                    Label(
+                        "Start \(lesson.durationMinutes)-minute session",
+                        systemImage: "play.circle.fill"
+                    )
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, minHeight: 48)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(AnatomyTheme.organColor(for: organID))
+            }
+
+            if let errorMessage = activityService.errorMessage {
+                Text(errorMessage)
+                    .font(.footnote)
+                    .foregroundStyle(AnatomyTheme.heart)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .anatomyCard()
     }
 }
 

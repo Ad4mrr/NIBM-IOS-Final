@@ -11,6 +11,7 @@ struct QuizQuestionView: View {
                 Text(question.prompt)
                     .font(.title2)
                     .fontWeight(.bold)
+                    .accessibilityAddTraits(.isHeader)
 
                 VStack(spacing: 12) {
                     ForEach(question.options.indices, id: \.self) { index in
@@ -24,6 +25,9 @@ struct QuizQuestionView: View {
                             )
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel("Answer \(index + 1), \(question.options[index])")
+                        .accessibilityValue(selectedAnswerIndex == index ? "Selected" : "Not selected")
+                        .accessibilityAddTraits(selectedAnswerIndex == index ? .isSelected : [])
                     }
                 }
 
@@ -67,6 +71,8 @@ private struct QuizQuestionHeader: View {
 
             ProgressView(value: 0.6)
                 .tint(AnatomyTheme.teal)
+                .accessibilityLabel("Quiz progress")
+                .accessibilityValue("60 percent complete")
         }
     }
 }
@@ -209,24 +215,33 @@ struct QuizResultView: View {
         ScrollView {
             VStack(spacing: 22) {
                 Image(systemName: "trophy.fill")
-                    .font(.system(size: 64))
+                    .font(.largeTitle)
                     .foregroundStyle(AnatomyTheme.teal)
+                    .accessibilityHidden(true)
 
                 VStack(spacing: 6) {
                     Text("Quiz Complete")
                         .font(.largeTitle)
                         .fontWeight(.bold)
+                        .accessibilityAddTraits(.isHeader)
                     Text("\(score)%")
-                        .font(.system(size: 54, weight: .bold))
+                        .font(.largeTitle.weight(.bold))
                         .foregroundStyle(AnatomyTheme.teal)
                     Text("\(correctAnswers) of \(totalQuestions) correct")
                         .foregroundStyle(AnatomyTheme.textSecondary)
                 }
 
-                HStack {
-                    ResultStatistic(value: "\(correctAnswers)", label: "Correct")
-                    ResultStatistic(value: "\(totalQuestions - correctAnswers)", label: "Review")
-                    ResultStatistic(value: "\(score)%", label: "Score")
+                ViewThatFits(in: .horizontal) {
+                    HStack {
+                        ResultStatistic(value: "\(correctAnswers)", label: "Correct")
+                        ResultStatistic(value: "\(totalQuestions - correctAnswers)", label: "Review")
+                        ResultStatistic(value: "\(score)%", label: "Score")
+                    }
+                    VStack {
+                        ResultStatistic(value: "\(correctAnswers)", label: "Correct")
+                        ResultStatistic(value: "\(totalQuestions - correctAnswers)", label: "Review")
+                        ResultStatistic(value: "\(score)%", label: "Score")
+                    }
                 }
 
                 VStack(alignment: .leading, spacing: 8) {

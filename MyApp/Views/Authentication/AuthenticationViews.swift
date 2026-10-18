@@ -26,8 +26,9 @@ struct SplashView: View {
 
                     VStack(spacing: 12) {
                         Text("Anatomy, made visible.")
-                            .font(.system(size: 43, weight: .bold, design: .rounded))
+                            .font(.system(.largeTitle, design: .rounded, weight: .bold))
                             .multilineTextAlignment(.center)
+                            .accessibilityAddTraits(.isHeader)
                         Text("Short lessons, active recall and immersive exploration—built for the way you learn.")
                             .font(.body)
                             .foregroundStyle(AnatomyTheme.textSecondary)
@@ -47,7 +48,7 @@ struct SplashView: View {
                         .font(.headline)
                         .foregroundStyle(AnatomyTheme.background)
                         .padding(.horizontal, 20)
-                        .frame(height: 56)
+                        .frame(minHeight: 56)
                         .background(.white, in: RoundedRectangle(cornerRadius: 18))
                     }
                 }
@@ -101,6 +102,7 @@ struct WelcomeView: View {
                         .overlay { RoundedRectangle(cornerRadius: 18).stroke(AnatomyTheme.teal.opacity(0.6)) }
                 }
             }
+            .adaptiveContentWidth(580)
             .padding(24)
         }
         .navigationBarBackButtonHidden()
@@ -298,7 +300,7 @@ private struct ModernField<Field: View>: View {
                 .foregroundStyle(AnatomyTheme.textSecondary)
             field
                 .padding(.horizontal, 15)
-                .frame(height: 52)
+                .frame(minHeight: 52)
                 .background(AnatomyTheme.surfaceStrong, in: RoundedRectangle(cornerRadius: 16))
         }
     }

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ReminderSetupView: View {
+    @Environment(NotificationService.self) private var notificationService
     @State private var reminderTime = Calendar.current.date(
         bySettingHour: 19,
         minute: 0,
@@ -8,6 +9,7 @@ struct ReminderSetupView: View {
         of: .now
     ) ?? .now
     @State private var activeDays: Set<Int> = [1, 2, 3, 4, 5]
+    @State private var hasLoadedSavedReminder = false
 
     private let days = [
         Weekday(id: 1, shortName: "M"),
@@ -27,7 +29,6 @@ struct ReminderSetupView: View {
                     selection: $reminderTime,
                     displayedComponents: .hourAndMinute
                 )
-                .labelsHidden()
                 .frame(maxWidth: .infinity)
 
                 VStack(alignment: .leading, spacing: 12) {
@@ -49,6 +50,7 @@ struct ReminderSetupView: View {
                             )
                             .accessibilityLabel(day.accessibilityName)
                             .accessibilityValue(activeDays.contains(day.id) ? "Active" : "Inactive")
+                            .accessibilityAddTraits(activeDays.contains(day.id) ? .isSelected : [])
                         }
                     }
                 }
@@ -62,15 +64,58 @@ struct ReminderSetupView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .anatomyCard()
 
-                PrimaryButton("Save Reminder", systemImage: "bell.fill") { }
+                VStack(alignment: .leading, spacing: 6) {
+                    Label(
+                        notificationService.isEnabled ? "Reminder active" : "Reminder inactive",
+                        systemImage: notificationService.isEnabled ? "bell.badge.fill" : "bell.slash"
+                    )
+                    .font(.headline)
 
-                Button("Disable Reminder", role: .destructive) { }
+                    Text(notificationService.authorizationDescription)
+                        .font(.footnote)
+                        .foregroundStyle(AnatomyTheme.textSecondary)
+
+                    if let message = notificationService.statusMessage {
+                        Text(message)
+                            .font(.footnote)
+                            .foregroundStyle(AnatomyTheme.teal)
+                    }
+
+                    if let error = notificationService.errorMessage {
+                        Text(error)
+                            .font(.footnote)
+                            .foregroundStyle(AnatomyTheme.heart)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .anatomyCard()
+
+                PrimaryButton("Save Reminder", systemImage: "bell.fill") {
+                    Task {
+                        await notificationService.saveReminder(
+                            time: reminderTime,
+                            activeDays: activeDays
+                        )
+                    }
+                }
+
+                Button("Disable Reminder", role: .destructive) {
+                    notificationService.disableReminder()
+                }
                     .frame(maxWidth: .infinity)
+                    .disabled(!notificationService.isEnabled)
             }
             .padding()
         }
         .navigationTitle("Study Reminder")
         .anatomyScreenBackground()
+        .task {
+            guard !hasLoadedSavedReminder else { return }
+            reminderTime = notificationService.savedTime
+            activeDays = notificationService.savedActiveDays
+            await notificationService.refreshAuthorizationStatus()
+            hasLoadedSavedReminder = true
+        }
     }
 
     private func toggle(_ dayID: Int) {

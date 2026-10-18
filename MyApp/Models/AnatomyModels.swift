@@ -6,8 +6,6 @@ struct Organ: Identifiable, Hashable {
     let systemName: String
     let description: String
     let symbolName: String
-    let progress: Double
-    let bestQuizScore: Int
     let lessons: [AnatomyLesson]
 
     var completedLessonCount: Int {

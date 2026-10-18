@@ -19,6 +19,8 @@ struct MainTabView: View {
                 NavigationStack { ProgressDashboardView() }
             }
         }
+        .tabViewStyle(.sidebarAdaptable)
+        .defaultAdaptableTabBarPlacement(.sidebar)
         .tint(AnatomyTheme.teal)
         .preferredColorScheme(.dark)
     }

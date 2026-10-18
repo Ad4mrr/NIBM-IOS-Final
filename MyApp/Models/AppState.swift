@@ -67,6 +67,7 @@ final class AppState {
         }
 
         saveLessonProgress(lessonID: lessonID, isCompleted: isNowCompleted)
+        updateWidgetProgress()
     }
 
     func completedLessonCount(for organ: Organ) -> Int {
@@ -95,6 +96,7 @@ final class AppState {
 
         bestQuizScores[organID] = score
         saveQuizScore(organID: organID, score: score)
+        updateWidgetProgress()
     }
 
     func isFavourite(_ structureID: String) -> Bool {
@@ -112,6 +114,7 @@ final class AppState {
     }
 
     private func loadPersistedState() {
+        defer { updateWidgetProgress() }
         let context = persistenceController.context
 
         do {
@@ -165,18 +168,9 @@ final class AppState {
     }
 
     private func seedInitialState() {
-        completedLessonIDs = Set(
-            SampleAnatomyData.organs
-                .flatMap(\.lessons)
-                .filter(\.isCompleted)
-                .map(\.id)
-        )
+        completedLessonIDs = []
         favouriteStructureIDs = Set(SampleAnatomyData.favourites.map(\.id))
-        bestQuizScores = Dictionary(
-            uniqueKeysWithValues: SampleAnatomyData.organs.map {
-                ($0.id, $0.bestQuizScore)
-            }
-        )
+        bestQuizScores = [:]
     }
 
     private func saveInitialState() {
@@ -299,5 +293,13 @@ final class AppState {
     private func recordPersistenceError(_ error: Error) {
         persistenceErrorMessage = error.localizedDescription
         print("Core Data save failed: \(error.localizedDescription)")
+    }
+
+    private func updateWidgetProgress() {
+        WidgetProgressService.update(
+            organs: SampleAnatomyData.organs,
+            completedLessonIDs: completedLessonIDs,
+            bestQuizScores: bestQuizScores
+        )
     }
 }

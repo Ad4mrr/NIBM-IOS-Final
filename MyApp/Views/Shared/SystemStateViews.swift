@@ -68,13 +68,15 @@ private struct SystemMessageView: View {
             Spacer()
 
             Image(systemName: icon)
-                .font(.system(size: 58))
+                .font(.largeTitle)
                 .foregroundStyle(AnatomyTheme.teal)
+                .accessibilityHidden(true)
 
             Text(title)
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .multilineTextAlignment(.center)
+                .accessibilityAddTraits(.isHeader)
 
             Text(message)
                 .foregroundStyle(AnatomyTheme.textSecondary)

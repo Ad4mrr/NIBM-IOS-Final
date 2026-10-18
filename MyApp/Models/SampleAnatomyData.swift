@@ -10,14 +10,14 @@ enum SampleAnatomyData {
     ]
 
     static let organs = [
-        Organ(id: "heart", title: "Heart", systemName: "Circulatory System", description: "Learn how the heart pumps blood around the body.", symbolName: "heart.fill", progress: 0.60, bestQuizScore: 80, lessons: heartLessons),
-        Organ(id: "brain", title: "Brain", systemName: "Nervous System", description: "Explore the control centre of the nervous system.", symbolName: "brain.head.profile", progress: 0.40, bestQuizScore: 60, lessons: [
+        Organ(id: "heart", title: "Heart", systemName: "Circulatory System", description: "Learn how the heart pumps blood around the body.", symbolName: "heart.fill", lessons: heartLessons),
+        Organ(id: "brain", title: "Brain", systemName: "Nervous System", description: "Explore the control centre of the nervous system.", symbolName: "brain.head.profile", lessons: [
             AnatomyLesson(id: "brain-overview", number: 1, title: "Overview", summary: "Introduction to the brain.", keyTakeaway: "The brain coordinates the body's activity.", durationMinutes: 6, structureCount: 4, status: .completed),
             AnatomyLesson(id: "brain-cerebrum", number: 2, title: "Cerebrum", summary: "Explore the largest brain region.", keyTakeaway: "The cerebrum supports thought and voluntary movement.", durationMinutes: 8, structureCount: 4, status: .inProgress),
             AnatomyLesson(id: "brain-cerebellum", number: 3, title: "Cerebellum", summary: "Learn about balance and coordination.", keyTakeaway: "The cerebellum fine-tunes movement.", durationMinutes: 7, structureCount: 3, status: .notStarted),
             AnatomyLesson(id: "brain-stem", number: 4, title: "Brain Stem", summary: "Study automatic body functions.", keyTakeaway: "The brain stem controls vital automatic functions.", durationMinutes: 7, structureCount: 3, status: .notStarted)
         ]),
-        Organ(id: "lungs", title: "Lungs", systemName: "Respiratory System", description: "Discover how oxygen enters the blood.", symbolName: "lungs.fill", progress: 0.20, bestQuizScore: 40, lessons: [
+        Organ(id: "lungs", title: "Lungs", systemName: "Respiratory System", description: "Discover how oxygen enters the blood.", symbolName: "lungs.fill", lessons: [
             AnatomyLesson(id: "lungs-overview", number: 1, title: "Overview", summary: "Introduction to breathing.", keyTakeaway: "The lungs exchange oxygen and carbon dioxide.", durationMinutes: 6, structureCount: 4, status: .completed),
             AnatomyLesson(id: "lungs-airways", number: 2, title: "Airways", summary: "Follow air into the lungs.", keyTakeaway: "Airways branch to carry air through the lungs.", durationMinutes: 7, structureCount: 4, status: .notStarted),
             AnatomyLesson(id: "lungs-alveoli", number: 3, title: "Alveoli", summary: "Explore microscopic air sacs.", keyTakeaway: "Gas exchange occurs across thin alveolar walls.", durationMinutes: 8, structureCount: 3, status: .notStarted),

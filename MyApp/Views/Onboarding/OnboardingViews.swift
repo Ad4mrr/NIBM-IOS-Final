@@ -40,6 +40,7 @@ struct OnboardingIntroductionView: View {
                     .background(AnatomyTheme.teal, in: RoundedRectangle(cornerRadius: 14))
             }
         }
+        .adaptiveContentWidth(680)
         .padding(24)
         .navigationBarBackButtonHidden()
         .anatomyScreenBackground()

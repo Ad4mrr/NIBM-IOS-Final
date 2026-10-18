@@ -11,6 +11,7 @@ struct OrganOverviewView: View {
                 LessonPathSection(organ: organ, appState: appState)
                 QuizLaunchCard(organTitle: organ.title, organID: organ.id)
             }
+            .adaptiveContentWidth(960)
             .padding(.bottom, 28)
         }
         .ignoresSafeArea(edges: .top)
@@ -28,7 +29,9 @@ private struct OrganOverviewHero: View {
             Rectangle()
                 .fill(AnatomyTheme.organGradient(for: organ.id))
             OrganArtworkView(organID: organ.id, size: 300)
-                .offset(x: 115, y: -30)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.trailing, 48)
+                .offset(y: -30)
 
             LinearGradient(
                 colors: [.clear, AnatomyTheme.background.opacity(0.95)],
@@ -40,13 +43,16 @@ private struct OrganOverviewHero: View {
                 StatusBadge(title: organ.systemName.uppercased(), systemImage: "sparkles", color: .white)
                 Spacer()
                 Text(organ.title)
-                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                    .accessibilityAddTraits(.isHeader)
                 Text(organ.description)
                     .foregroundStyle(.white.opacity(0.72))
                     .frame(maxWidth: 270, alignment: .leading)
                 ProgressView(value: progress)
                     .tint(AnatomyTheme.organColor(for: organ.id))
                     .frame(maxWidth: 260)
+                    .accessibilityLabel("\(organ.title) lesson progress")
+                    .accessibilityValue("\(Int((progress * 100).rounded())) percent")
                 Text(progress, format: .percent.precision(.fractionLength(0)))
                     .font(.headline)
                     .foregroundStyle(AnatomyTheme.organColor(for: organ.id))
@@ -125,7 +131,9 @@ private struct QuizLaunchCard: View {
             RoundedRectangle(cornerRadius: 28)
                 .fill(AnatomyTheme.organGradient(for: organID))
             OrganArtworkView(organID: organID, size: 130, showsGlow: false)
-                .offset(x: 220, y: 30)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.trailing, 30)
+                .offset(y: 30)
                 .opacity(0.65)
             VStack(alignment: .leading, spacing: 10) {
                 Label("KNOWLEDGE CHECK", systemImage: "bolt.fill")
@@ -143,13 +151,13 @@ private struct QuizLaunchCard: View {
                         .font(.headline)
                         .foregroundStyle(AnatomyTheme.background)
                         .padding(.horizontal, 18)
-                        .frame(height: 44)
+                        .frame(minHeight: 44)
                         .background(.white, in: Capsule())
                 }
             }
             .padding(22)
         }
-        .frame(height: 190)
+        .frame(minHeight: 190)
         .clipShape(RoundedRectangle(cornerRadius: 28))
         .padding(.horizontal, 20)
     }

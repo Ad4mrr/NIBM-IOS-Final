@@ -47,6 +47,7 @@ struct SectionTitle: View {
             Text(title)
                 .font(.title2.weight(.bold))
                 .foregroundStyle(AnatomyTheme.textPrimary)
+                .accessibilityAddTraits(.isHeader)
 
             if let subtitle {
                 Text(subtitle)

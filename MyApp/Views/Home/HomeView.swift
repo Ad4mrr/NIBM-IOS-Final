@@ -15,6 +15,7 @@ struct HomeView: View {
                 QuickStatsRow()
                 OrganJourneySection(appState: appState)
             }
+            .adaptiveContentWidth(900)
             .padding(.horizontal, 20)
             .padding(.bottom, 32)
         }
@@ -36,6 +37,7 @@ private struct HomeHeader: View {
                 Text("Ready, \(learnerName)?")
                     .font(.largeTitle.weight(.bold))
                     .foregroundStyle(AnatomyTheme.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
             }
 
             Spacer()
@@ -70,7 +72,9 @@ private struct ContinueLearningHero: View {
                 .offset(x: 150, y: -60)
 
             OrganArtworkView(organID: organ.id, size: 220)
-                .offset(x: 135, y: -42)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.trailing, 36)
+                .offset(y: -42)
 
             VStack(alignment: .leading, spacing: 14) {
                 StatusBadge(title: "CONTINUE", systemImage: "play.fill", color: .white)
@@ -92,7 +96,7 @@ private struct ContinueLearningHero: View {
                         .font(.headline)
                         .foregroundStyle(AnatomyTheme.background)
                         .padding(.horizontal, 18)
-                        .frame(height: 48)
+                        .frame(minHeight: 48)
                         .background(.white, in: Capsule())
                 }
             }
@@ -136,6 +140,8 @@ private struct QuickStat: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .anatomyCard()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(value), \(label)")
     }
 }
 

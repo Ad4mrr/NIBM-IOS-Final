@@ -22,4 +22,9 @@ extension View {
         background(AnatomyTheme.backgroundGradient.ignoresSafeArea())
             .preferredColorScheme(.dark)
     }
+
+    func adaptiveContentWidth(_ maxWidth: CGFloat = 1_000) -> some View {
+        frame(maxWidth: maxWidth)
+            .frame(maxWidth: .infinity)
+    }
 }

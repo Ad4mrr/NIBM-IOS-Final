@@ -63,5 +63,7 @@ private struct SearchResultRow: View {
                 .foregroundStyle(AnatomyTheme.heart)
         }
         .padding(.vertical, 6)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(result.title), \(result.detail)")
     }
 }

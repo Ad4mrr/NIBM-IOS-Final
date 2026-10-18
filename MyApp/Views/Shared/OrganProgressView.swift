@@ -2,7 +2,7 @@ import SwiftUI
 
 struct OrganProgressView: View {
     let title: String
-    let symbolName: String
+    let organID: String
     let progress: Double
     let color: Color
     let completedLessons: Int
@@ -16,7 +16,7 @@ struct OrganProgressView: View {
     var body: some View {
         HStack(spacing: 18) {
             OrganFillSymbol(
-                symbolName: symbolName,
+                organID: organID,
                 progress: safeProgress,
                 color: color
             )
@@ -49,21 +49,21 @@ struct OrganProgressView: View {
 }
 
 private struct OrganFillSymbol: View {
-    let symbolName: String
+    let organID: String
     let progress: Double
     let color: Color
 
     var body: some View {
         ZStack {
-            organSymbol
-                .foregroundStyle(AnatomyTheme.incomplete)
+            organArtwork
+                .grayscale(1)
+                .opacity(0.42)
 
             GeometryReader { geometry in
-                organSymbol
-                    .foregroundStyle(color)
+                organArtwork
                     .frame(width: geometry.size.width, height: geometry.size.height)
-                    // The coloured copy is revealed from the bottom.
-                    // Its height uses the same 0-to-1 value shown as progress text.
+                    // Reveal the real coloured organ artwork from the bottom.
+                    // This uses the same Core Data-derived value as the percentage text.
                     .mask(alignment: .bottom) {
                         Rectangle()
                             .frame(height: geometry.size.height * progress)
@@ -75,18 +75,18 @@ private struct OrganFillSymbol: View {
         .accessibilityHidden(true)
     }
 
-    private var organSymbol: some View {
-        Image(systemName: symbolName)
+    private var organArtwork: some View {
+        Image(AnatomyTheme.organImageName(for: organID))
             .resizable()
             .scaledToFit()
-            .padding(4)
+            .padding(2)
     }
 }
 
 #Preview {
     OrganProgressView(
         title: "Heart",
-        symbolName: "heart.fill",
+        organID: "heart",
         progress: 0.6,
         color: AnatomyTheme.heart,
         completedLessons: 3,

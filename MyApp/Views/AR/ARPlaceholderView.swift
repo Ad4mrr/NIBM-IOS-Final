@@ -1,7 +1,12 @@
 import SwiftUI
 
 struct ARPlaceholderView: View {
-    @State private var selectedOrganID = "heart"
+    @State private var selectedOrganID: String
+    @State private var isPresentingAR = false
+
+    init(initialOrganID: String = "heart") {
+        _selectedOrganID = State(initialValue: initialOrganID == "brain" ? "brain" : "heart")
+    }
 
     private var selectedOrgan: Organ {
         SampleAnatomyData.organs.first { $0.id == selectedOrganID } ?? SampleAnatomyData.heart
@@ -12,14 +17,14 @@ struct ARPlaceholderView: View {
             VStack(alignment: .leading, spacing: 24) {
                 SectionTitle(
                     "Bring anatomy into your space",
-                    eyebrow: "AR LAB · PREVIEW",
-                    subtitle: "Choose a model now. Interactive placement arrives with the ARKit phase."
+                    eyebrow: "AR LAB · PHASE 7",
+                    subtitle: "Choose an organ, scan a horizontal surface, then place and explore it."
                 )
 
                 ARModelPreview(organ: selectedOrgan)
 
                 HStack(spacing: 10) {
-                    ForEach(SampleAnatomyData.organs) { organ in
+                    ForEach(SampleAnatomyData.organs.filter { $0.id == "heart" || $0.id == "brain" }) { organ in
                         Button {
                             withAnimation(.snappy) {
                                 selectedOrganID = organ.id
@@ -53,24 +58,32 @@ struct ARPlaceholderView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 15) {
-                    Label("Coming in the ARKit phase", systemImage: "sparkles")
+                    Label("Interactive AR workflow", systemImage: "sparkles")
                         .font(.headline)
                         .foregroundStyle(AnatomyTheme.teal)
                     ARCapabilityRow(number: "01", title: "Scan", detail: "Find a horizontal surface")
-                    ARCapabilityRow(number: "02", title: "Place", detail: "Position a true-scale organ")
-                    ARCapabilityRow(number: "03", title: "Explore", detail: "Rotate, scale and reveal hotspots")
+                    ARCapabilityRow(number: "02", title: "Place", detail: "Tap the surface to position the organ")
+                    ARCapabilityRow(number: "03", title: "Explore", detail: "Rotate, scale and open learning hotspots")
                 }
                 .anatomyCard()
 
-                PrimaryButton("AR interaction coming soon", systemImage: "arkit") { }
-                    .disabled(true)
-                    .opacity(0.62)
+                PrimaryButton("Start AR Experience", systemImage: "arkit") {
+                    isPresentingAR = true
+                }
+
+                Text("The current Heart and Brain geometry is a temporary stand-in. Licensed anatomical USDZ models are still required before final submission.")
+                    .font(.footnote)
+                    .foregroundStyle(AnatomyTheme.textSecondary)
             }
+            .adaptiveContentWidth(900)
             .padding(20)
         }
         .navigationTitle("AR Lab")
         .navigationBarTitleDisplayMode(.inline)
         .anatomyScreenBackground()
+        .fullScreenCover(isPresented: $isPresentingAR) {
+            ARExperienceView(organID: selectedOrganID)
+        }
     }
 }
 
@@ -95,7 +108,7 @@ private struct ARModelPreview: View {
                     VStack(alignment: .leading) {
                         Text(organ.title)
                             .font(.title2.weight(.bold))
-                        Text("Interactive 3D model planned")
+                        Text("AR placement available")
                             .font(.caption)
                             .foregroundStyle(.white.opacity(0.65))
                     }

@@ -4,7 +4,6 @@ struct SettingsView: View {
     @Environment(AppState.self) private var appState
     @Environment(FirebaseService.self) private var firebaseService
     @Environment(BiometricService.self) private var biometricService
-    @State private var largerStudyText = false
 
     var body: some View {
         List {
@@ -67,8 +66,8 @@ struct SettingsView: View {
             }
 
             Section("Accessibility") {
-                Toggle("Larger Study Text", isOn: $largerStudyText)
-                Text("The interface already uses Dynamic Type text styles.")
+                Label("Dynamic Type supported", systemImage: "textformat.size")
+                Text("Choose your preferred text size in iPhone or iPad Settings. AnatomyAR follows that system setting automatically.")
                     .font(.footnote)
                     .foregroundStyle(AnatomyTheme.textSecondary)
             }
@@ -87,7 +86,7 @@ struct SettingsView: View {
 
             Section("About") {
                 LabeledContent("Application", value: "AnatomyAR")
-                LabeledContent("Phase", value: "Face ID security")
+                LabeledContent("Phase", value: "Notifications")
             }
 
             Section {

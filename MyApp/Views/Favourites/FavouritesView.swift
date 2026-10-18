@@ -48,6 +48,8 @@ private struct FavouriteRow: View {
             }
         }
         .padding(.vertical, 5)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(favourite.title), \(favourite.organTitle), \(favourite.topic)")
     }
 }
 

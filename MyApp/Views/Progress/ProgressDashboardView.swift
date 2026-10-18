@@ -15,11 +15,18 @@ struct ProgressDashboardView: View {
 
                 Text("Organ mastery")
                     .font(.title2.weight(.bold))
+                    .accessibilityAddTraits(.isHeader)
 
-                ForEach(SampleAnatomyData.organs) { organ in
-                    MasteryCard(organ: organ, appState: appState)
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 360), spacing: 20)],
+                    spacing: 20
+                ) {
+                    ForEach(SampleAnatomyData.organs) { organ in
+                        MasteryCard(organ: organ, appState: appState)
+                    }
                 }
             }
+            .adaptiveContentWidth(1_050)
             .padding(20)
             .padding(.bottom, 24)
         }
@@ -44,6 +51,14 @@ private struct ProgressHero: View {
             .reduce(0, +)
     }
 
+    private var quizAverage: Int {
+        let scores = SampleAnatomyData.organs.map {
+            appState.bestQuizScore(for: $0.id)
+        }
+        guard !scores.isEmpty else { return 0 }
+        return scores.reduce(0, +) / scores.count
+    }
+
     var body: some View {
         HStack(spacing: 18) {
             ZStack {
@@ -63,10 +78,13 @@ private struct ProgressHero: View {
                 }
             }
             .frame(width: 118, height: 118)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Overall progress")
+            .accessibilityValue("\(Int((overallProgress * 100).rounded())) percent")
 
             VStack(alignment: .leading, spacing: 14) {
-                ProgressMetric(value: "3 days", label: "Current streak", icon: "flame.fill")
-                ProgressMetric(value: "60%", label: "Quiz average", icon: "checkmark.seal.fill")
+                ProgressMetric(value: "—", label: "Current streak", icon: "flame.fill")
+                ProgressMetric(value: "\(quizAverage)%", label: "Quiz average", icon: "checkmark.seal.fill")
                 ProgressMetric(
                     value: "\(completedLessonCount)",
                     label: "Lessons complete",
@@ -91,6 +109,8 @@ private struct ProgressMetric: View {
                 Text(label).font(.caption).foregroundStyle(AnatomyTheme.textSecondary)
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(label), \(value)")
     }
 }
 
@@ -100,10 +120,9 @@ private struct MasteryCard: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            OrganArtworkView(organID: organ.id, size: 112, showsGlow: false)
             OrganProgressView(
                 title: organ.title,
-                symbolName: organ.symbolName,
+                organID: organ.id,
                 progress: appState.progress(for: organ),
                 color: AnatomyTheme.organColor(for: organ.id),
                 completedLessons: appState.completedLessonCount(for: organ),

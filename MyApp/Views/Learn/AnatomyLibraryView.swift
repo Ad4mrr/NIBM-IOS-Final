@@ -6,15 +6,21 @@ struct AnatomyLibraryView: View {
             LazyVStack(alignment: .leading, spacing: 22) {
                 LibraryHeader()
 
-                ForEach(SampleAnatomyData.organs) { organ in
-                    NavigationLink {
-                        OrganOverviewView(organ: organ)
-                    } label: {
-                        OrganDiscoveryCard(organ: organ)
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 340), spacing: 22)],
+                    spacing: 22
+                ) {
+                    ForEach(SampleAnatomyData.organs) { organ in
+                        NavigationLink {
+                            OrganOverviewView(organ: organ)
+                        } label: {
+                            OrganDiscoveryCard(organ: organ)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
+            .adaptiveContentWidth(1_050)
             .padding(.horizontal, 20)
             .padding(.bottom, 32)
         }
@@ -55,7 +61,7 @@ private struct LibraryHeader: View {
                 .font(.subheadline)
                 .foregroundStyle(AnatomyTheme.textSecondary)
                 .padding(.horizontal, 16)
-                .frame(height: 52)
+                .frame(minHeight: 52)
                 .background(AnatomyTheme.surface, in: RoundedRectangle(cornerRadius: 18))
                 .overlay { RoundedRectangle(cornerRadius: 18).stroke(.white.opacity(0.08)) }
             }
@@ -73,7 +79,9 @@ private struct OrganDiscoveryCard: View {
                 .fill(AnatomyTheme.organGradient(for: organ.id))
 
             OrganArtworkView(organID: organ.id, size: 190)
-                .offset(x: 180, y: 15)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.trailing, 16)
+                .offset(y: 15)
 
             VStack(alignment: .leading, spacing: 10) {
                 Text(organ.systemName.uppercased())
@@ -102,5 +110,7 @@ private struct OrganDiscoveryCard: View {
         .frame(height: 250)
         .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         .overlay { RoundedRectangle(cornerRadius: 28).stroke(.white.opacity(0.1)) }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(organ.title), \(organ.systemName), \(organ.lessons.count) lessons and quiz")
     }
 }
