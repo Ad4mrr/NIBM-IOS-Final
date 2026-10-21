@@ -148,11 +148,8 @@ private struct LessonVideoCard: View {
 
             if let player {
                 VideoPlayer(player: player)
-                    // The supplied anatomy videos are portrait, so the player
-                    // uses the same shape instead of adding black side bars.
-                    .aspectRatio(9 / 16, contentMode: .fit)
-                    .frame(maxWidth: 300)
-                    .frame(maxWidth: .infinity)
+                    // The edited lesson videos use a standard horizontal format.
+                    .aspectRatio(16 / 9, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
                     .overlay {
                         RoundedRectangle(cornerRadius: 18)
