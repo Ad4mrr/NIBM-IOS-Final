@@ -1,78 +1,152 @@
 import SwiftUI
 
 struct QuizQuestionView: View {
-    let question: QuizQuestion
+    @Environment(AppState.self) private var appState
+    let organID: String
+    let questions: [QuizQuestion]
+
+    @State private var currentQuestionIndex = 0
     @State private var selectedAnswerIndex: Int?
+    @State private var correctAnswers = 0
+    @State private var isShowingFeedback = false
+    @State private var isFinished = false
+
+    private var currentQuestion: QuizQuestion? {
+        questions.indices.contains(currentQuestionIndex) ? questions[currentQuestionIndex] : nil
+    }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                QuizQuestionHeader()
-                Text(question.prompt)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .accessibilityAddTraits(.isHeader)
-
-                VStack(spacing: 12) {
-                    ForEach(question.options.indices, id: \.self) { index in
-                        Button {
-                            selectedAnswerIndex = index
-                        } label: {
-                            QuizOptionRow(
-                                title: question.options[index],
-                                letter: String(index + 1),
-                                isSelected: selectedAnswerIndex == index
-                            )
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Answer \(index + 1), \(question.options[index])")
-                        .accessibilityValue(selectedAnswerIndex == index ? "Selected" : "Not selected")
-                        .accessibilityAddTraits(selectedAnswerIndex == index ? .isSelected : [])
-                    }
-                }
-
-                NavigationLink {
-                    QuizFeedbackView(
-                        question: question,
-                        wasCorrect: selectedAnswerIndex == question.correctAnswerIndex
+        if isFinished {
+            QuizResultView(
+                correctAnswers: correctAnswers,
+                totalQuestions: questions.count,
+                organID: organID,
+                retry: resetQuiz
+            )
+        } else if let currentQuestion {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    QuizQuestionHeader(
+                        currentQuestion: currentQuestionIndex + 1,
+                        totalQuestions: questions.count
                     )
-                } label: {
-                    Text("Check Answer")
+
+                    Text(currentQuestion.prompt)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .accessibilityAddTraits(.isHeader)
+
+                    VStack(spacing: 12) {
+                        ForEach(currentQuestion.options.indices, id: \.self) { index in
+                            Button {
+                                selectedAnswerIndex = index
+                            } label: {
+                                QuizOptionRow(
+                                    title: currentQuestion.options[index],
+                                    letter: String(index + 1),
+                                    isSelected: selectedAnswerIndex == index
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(isShowingFeedback)
+                            .accessibilityLabel("Answer \(index + 1), \(currentQuestion.options[index])")
+                            .accessibilityValue(selectedAnswerIndex == index ? "Selected" : "Not selected")
+                            .accessibilityAddTraits(selectedAnswerIndex == index ? .isSelected : [])
+                        }
+                    }
+
+                    if isShowingFeedback, let selectedAnswerIndex {
+                        QuizFeedbackView(
+                            question: currentQuestion,
+                            wasCorrect: selectedAnswerIndex == currentQuestion.correctAnswerIndex,
+                            isLastQuestion: currentQuestionIndex == questions.count - 1,
+                            continueAction: advanceQuiz
+                        )
+                    } else {
+                        Button("Check Answer") {
+                            checkAnswer()
+                        }
                         .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .frame(minHeight: 50)
+                        .frame(maxWidth: .infinity, minHeight: 50)
                         .foregroundStyle(.white)
                         .background(
                             selectedAnswerIndex == nil ? AnatomyTheme.incomplete : AnatomyTheme.teal,
                             in: RoundedRectangle(cornerRadius: 14)
                         )
+                        .disabled(selectedAnswerIndex == nil)
+                    }
                 }
-                .disabled(selectedAnswerIndex == nil)
+                .padding()
             }
-            .padding()
+            .navigationTitle("\(currentQuestion.organTitle) Quiz")
+            .navigationBarTitleDisplayMode(.inline)
+            .anatomyScreenBackground()
+        } else {
+            ContentUnavailableView(
+                "Quiz unavailable",
+                systemImage: "questionmark.circle",
+                description: Text("No questions are available for this topic yet.")
+            )
+            .anatomyScreenBackground()
         }
-        .navigationTitle("\(question.organTitle) Quiz")
-        .navigationBarTitleDisplayMode(.inline)
-        .anatomyScreenBackground()
+    }
+
+    private func checkAnswer() {
+        guard let selectedAnswerIndex, let currentQuestion else { return }
+        if selectedAnswerIndex == currentQuestion.correctAnswerIndex {
+            correctAnswers += 1
+        }
+        isShowingFeedback = true
+    }
+
+    private func advanceQuiz() {
+        if currentQuestionIndex == questions.count - 1 {
+            appState.recordQuizResult(
+                organID: organID,
+                correctAnswers: correctAnswers,
+                totalQuestions: questions.count
+            )
+            isFinished = true
+        } else {
+            currentQuestionIndex += 1
+            selectedAnswerIndex = nil
+            isShowingFeedback = false
+        }
+    }
+
+    private func resetQuiz() {
+        currentQuestionIndex = 0
+        selectedAnswerIndex = nil
+        correctAnswers = 0
+        isShowingFeedback = false
+        isFinished = false
     }
 }
 
 private struct QuizQuestionHeader: View {
+    let currentQuestion: Int
+    let totalQuestions: Int
+
+    private var progress: Double {
+        guard totalQuestions > 0 else { return 0 }
+        return Double(currentQuestion) / Double(totalQuestions)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Question 3 of 5")
+                Text("Question \(currentQuestion) of \(totalQuestions)")
                     .font(.headline)
                 Spacer()
-                Text("60% complete")
+                Text(progress, format: .percent.precision(.fractionLength(0)))
                     .font(.subheadline)
                     .foregroundStyle(AnatomyTheme.teal)
             }
 
-            ProgressView(value: 0.6)
+            ProgressView(value: progress)
                 .tint(AnatomyTheme.teal)
                 .accessibilityLabel("Quiz progress")
-                .accessibilityValue("60 percent complete")
+                .accessibilityValue(Text(progress, format: .percent))
         }
     }
 }
@@ -113,68 +187,34 @@ private struct QuizOptionRow: View {
     }
 }
 
-struct QuizFeedbackView: View {
-    @Environment(AppState.self) private var appState
+private struct QuizFeedbackView: View {
     let question: QuizQuestion
     let wasCorrect: Bool
-
-    private var organID: String {
-        question.organTitle.lowercased()
-    }
+    let isLastQuestion: Bool
+    let continueAction: () -> Void
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Label(
-                    wasCorrect ? "Correct!" : "Not quite",
-                    systemImage: wasCorrect ? "checkmark.circle.fill" : "xmark.circle.fill"
-                )
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundStyle(wasCorrect ? AnatomyTheme.teal : AnatomyTheme.heart)
-
-                FeedbackCard(
-                    title: "Correct Answer",
-                    text: question.options[question.correctAnswerIndex],
-                    icon: "checkmark.seal.fill"
-                )
-                FeedbackCard(
-                    title: "Why?",
-                    text: question.explanation,
-                    icon: "book.fill"
-                )
-                FeedbackCard(
-                    title: "Memory Tip",
-                    text: question.memoryTip,
-                    icon: "lightbulb.fill"
-                )
-
-                NavigationLink {
-                    QuizResultView(
-                        correctAnswers: wasCorrect ? 1 : 0,
-                        totalQuestions: 1,
-                        organID: organID
-                    )
-                } label: {
-                    Text("Next Question")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .frame(minHeight: 50)
-                        .foregroundStyle(.white)
-                        .background(AnatomyTheme.teal, in: RoundedRectangle(cornerRadius: 14))
-                }
-            }
-            .padding()
-        }
-        .navigationTitle("Answer Feedback")
-        .navigationBarTitleDisplayMode(.inline)
-        .anatomyScreenBackground()
-        .task {
-            appState.recordQuizResult(
-                organID: organID,
-                correctAnswers: wasCorrect ? 1 : 0,
-                totalQuestions: 1
+        VStack(alignment: .leading, spacing: 16) {
+            Label(
+                wasCorrect ? "Correct!" : "Not quite",
+                systemImage: wasCorrect ? "checkmark.circle.fill" : "xmark.circle.fill"
             )
+            .font(.title2.weight(.bold))
+            .foregroundStyle(wasCorrect ? AnatomyTheme.teal : AnatomyTheme.heart)
+
+            FeedbackCard(
+                title: "Correct Answer",
+                text: question.options[question.correctAnswerIndex],
+                icon: "checkmark.seal.fill"
+            )
+            FeedbackCard(title: "Why?", text: question.explanation, icon: "book.fill")
+            FeedbackCard(title: "Memory Tip", text: question.memoryTip, icon: "lightbulb.fill")
+
+            Button(isLastQuestion ? "See Results" : "Next Question", action: continueAction)
+                .fontWeight(.semibold)
+                .frame(maxWidth: .infinity, minHeight: 50)
+                .foregroundStyle(.white)
+                .background(AnatomyTheme.teal, in: RoundedRectangle(cornerRadius: 14))
         }
     }
 }
@@ -197,10 +237,11 @@ private struct FeedbackCard: View {
     }
 }
 
-struct QuizResultView: View {
+private struct QuizResultView: View {
     let correctAnswers: Int
     let totalQuestions: Int
     let organID: String
+    let retry: () -> Void
 
     private var score: Int {
         guard totalQuestions > 0 else { return 0 }
@@ -221,8 +262,7 @@ struct QuizResultView: View {
 
                 VStack(spacing: 6) {
                     Text("Quiz Complete")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                        .font(.largeTitle.weight(.bold))
                         .accessibilityAddTraits(.isHeader)
                     Text("\(score)%")
                         .font(.largeTitle.weight(.bold))
@@ -244,18 +284,7 @@ struct QuizResultView: View {
                     }
                 }
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Area to review")
-                        .font(.headline)
-                    Label("Heart valves", systemImage: "book.fill")
-                        .foregroundStyle(AnatomyTheme.heart)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .anatomyCard()
-
-                NavigationLink {
-                    QuizQuestionView(question: SampleAnatomyData.quizQuestion)
-                } label: {
+                Button(action: retry) {
                     Label("Retry Quiz", systemImage: "arrow.clockwise")
                         .font(.headline)
                         .frame(maxWidth: .infinity, minHeight: 50)
@@ -285,8 +314,7 @@ private struct ResultStatistic: View {
     var body: some View {
         VStack {
             Text(value)
-                .font(.title2)
-                .fontWeight(.bold)
+                .font(.title2.weight(.bold))
             Text(label)
                 .font(.caption)
                 .foregroundStyle(AnatomyTheme.textSecondary)

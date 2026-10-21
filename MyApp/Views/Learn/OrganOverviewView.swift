@@ -145,7 +145,10 @@ private struct QuizLaunchCard: View {
                     .font(.subheadline)
                     .foregroundStyle(AnatomyTheme.textSecondary)
                 NavigationLink {
-                    QuizQuestionView(question: SampleAnatomyData.quizQuestion)
+                    QuizQuestionView(
+                        organID: organID,
+                        questions: SampleAnatomyData.quizQuestionsByOrganID[organID] ?? []
+                    )
                 } label: {
                     Text("Start quiz")
                         .font(.headline)
