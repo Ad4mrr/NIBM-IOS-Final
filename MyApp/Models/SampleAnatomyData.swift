@@ -25,6 +25,74 @@ enum SampleAnatomyData {
         ])
     ]
 
+    static let lessonContentByID: [String: LessonContent] = [
+        "heart-overview": LessonContent(
+            overview: "The heart is a muscular organ in the chest between the lungs. Its rhythmic contractions create the pressure that moves blood through pulmonary circulation to the lungs and systemic circulation to the rest of the body.",
+            concepts: ["The right side sends oxygen-poor blood to the lungs.", "The left side sends oxygen-rich blood to the body.", "The cardiac cycle alternates filling and pumping phases."],
+            structures: [LessonStructure(name: "Atria", function: "Upper chambers that receive blood."), LessonStructure(name: "Ventricles", function: "Lower chambers that pump blood out."), LessonStructure(name: "Septum", function: "Wall separating the right and left sides."), LessonStructure(name: "Coronary vessels", function: "Supply the heart muscle itself.")]
+        ),
+        "heart-chambers": LessonContent(
+            overview: "Four chambers divide the heart into two coordinated pumps. The atria receive returning blood and pass it to the ventricles, whose thicker walls generate the force needed to move blood onward.",
+            concepts: ["The right atrium receives blood from the venae cavae.", "The right ventricle pumps blood toward the lungs.", "The left ventricle has the thickest wall because it pumps through the whole body."],
+            structures: [LessonStructure(name: "Right atrium", function: "Receives oxygen-poor systemic blood."), LessonStructure(name: "Right ventricle", function: "Pumps blood into the pulmonary artery."), LessonStructure(name: "Left atrium", function: "Receives oxygen-rich pulmonary blood."), LessonStructure(name: "Left ventricle", function: "Pumps blood into the aorta.")]
+        ),
+        "heart-valves": LessonContent(
+            overview: "Heart valves respond to pressure differences. They open when pressure behind them is greater and close when pressure begins to reverse, keeping blood moving forward through the chambers.",
+            concepts: ["Atrioventricular valves lie between atria and ventricles.", "Semilunar valves guard the ventricular exits.", "Valve closure creates the normal heart sounds."],
+            structures: [LessonStructure(name: "Tricuspid valve", function: "Controls flow from right atrium to right ventricle."), LessonStructure(name: "Pulmonary valve", function: "Guards the pulmonary artery."), LessonStructure(name: "Mitral valve", function: "Controls flow from left atrium to left ventricle."), LessonStructure(name: "Aortic valve", function: "Guards the entrance to the aorta.")]
+        ),
+        "heart-vessels": LessonContent(
+            overview: "The great vessels connect the heart to the pulmonary and systemic circuits. Arteries carry blood away from the heart, while veins return blood to it, regardless of oxygen level.",
+            concepts: ["The venae cavae return blood from the body.", "Pulmonary vessels connect the heart and lungs.", "The aorta distributes blood to systemic arteries."],
+            structures: [LessonStructure(name: "Aorta", function: "Carries oxygen-rich blood to the body."), LessonStructure(name: "Venae cavae", function: "Return oxygen-poor blood from the body."), LessonStructure(name: "Pulmonary arteries", function: "Carry blood from the heart to the lungs."), LessonStructure(name: "Pulmonary veins", function: "Return oxygen-rich blood from the lungs.")]
+        ),
+        "heart-flow": LessonContent(
+            overview: "Blood follows a continuous circuit: body, right heart, lungs, left heart, and body again. Valves and coordinated contractions maintain this one-way route.",
+            concepts: ["Oxygen-poor blood enters the right atrium.", "Gas exchange in the lungs adds oxygen and removes carbon dioxide.", "Oxygen-rich blood leaves the left ventricle through the aorta."],
+            structures: [LessonStructure(name: "Pulmonary circuit", function: "Moves blood between heart and lungs."), LessonStructure(name: "Systemic circuit", function: "Moves blood between heart and body."), LessonStructure(name: "Capillaries", function: "Allow exchange with tissues."), LessonStructure(name: "Valves", function: "Prevent reversal along the pathway.")]
+        ),
+        "brain-overview": LessonContent(
+            overview: "The brain is the central control organ of the nervous system. It interprets sensory information, directs movement, supports thought and memory, and regulates essential internal functions.",
+            concepts: ["Different regions specialise while working as a network.", "Neurons communicate with electrical and chemical signals.", "The skull, meninges, and cerebrospinal fluid protect the brain."],
+            structures: [LessonStructure(name: "Cerebrum", function: "Supports perception, thought, and voluntary action."), LessonStructure(name: "Cerebellum", function: "Coordinates balance and movement."), LessonStructure(name: "Brain stem", function: "Regulates vital automatic functions."), LessonStructure(name: "Corpus callosum", function: "Connects the cerebral hemispheres.")]
+        ),
+        "brain-cerebrum": LessonContent(
+            overview: "The cerebrum consists of right and left hemispheres covered by the cerebral cortex. Its lobes process sensation, plan actions, produce language, form memories, and support conscious thought.",
+            concepts: ["The frontal lobe supports planning and voluntary movement.", "The parietal lobe processes body sensation and spatial information.", "Temporal and occipital regions support hearing, memory, and vision."],
+            structures: [LessonStructure(name: "Frontal lobe", function: "Planning, behaviour, speech, and movement."), LessonStructure(name: "Parietal lobe", function: "Touch and spatial processing."), LessonStructure(name: "Temporal lobe", function: "Hearing, language, and memory."), LessonStructure(name: "Occipital lobe", function: "Visual processing.")]
+        ),
+        "brain-cerebellum": LessonContent(
+            overview: "The cerebellum compares intended movement with sensory feedback. It adjusts timing, force, and coordination so actions become smooth and accurate rather than initiating movement itself.",
+            concepts: ["It receives information from muscles, joints, eyes, and inner ears.", "It refines posture, balance, and motor learning.", "Damage can produce unsteady and poorly coordinated movement."],
+            structures: [LessonStructure(name: "Hemispheres", function: "Coordinate limb movements."), LessonStructure(name: "Vermis", function: "Helps control posture and trunk movement."), LessonStructure(name: "Cerebellar cortex", function: "Processes incoming motor information."), LessonStructure(name: "Peduncles", function: "Connect the cerebellum with the brain stem.")]
+        ),
+        "brain-stem": LessonContent(
+            overview: "The brain stem links the brain with the spinal cord. It carries major nerve pathways and regulates breathing, heart rate, blood pressure, alertness, swallowing, and protective reflexes.",
+            concepts: ["The midbrain contributes to movement and visual reflexes.", "The pons connects regions and helps regulate breathing.", "The medulla controls vital cardiovascular and respiratory functions."],
+            structures: [LessonStructure(name: "Midbrain", function: "Supports movement and sensory reflexes."), LessonStructure(name: "Pons", function: "Relays signals and assists breathing control."), LessonStructure(name: "Medulla", function: "Regulates vital automatic functions."), LessonStructure(name: "Reticular formation", function: "Supports wakefulness and attention.")]
+        ),
+        "lungs-overview": LessonContent(
+            overview: "The lungs exchange gases between air and blood. Ventilation brings fresh air to microscopic alveoli, where oxygen enters capillaries and carbon dioxide moves into the air to be exhaled.",
+            concepts: ["The right lung has three lobes and the left has two.", "Branching airways distribute air throughout each lung.", "The respiratory and circulatory systems work together."],
+            structures: [LessonStructure(name: "Lobes", function: "Divide the lungs into anatomical regions."), LessonStructure(name: "Bronchial tree", function: "Conducts and distributes air."), LessonStructure(name: "Alveoli", function: "Provide the gas-exchange surface."), LessonStructure(name: "Pleura", function: "Reduces friction during breathing.")]
+        ),
+        "lungs-airways": LessonContent(
+            overview: "Conducting airways form an inverted tree. The trachea divides into bronchi, which repeatedly branch into smaller bronchioles before reaching the respiratory zone.",
+            concepts: ["Cartilage helps keep larger airways open.", "Mucus and cilia trap and remove inhaled particles.", "Smooth muscle changes bronchiole diameter and airflow resistance."],
+            structures: [LessonStructure(name: "Trachea", function: "Carries air from the larynx to the bronchi."), LessonStructure(name: "Main bronchi", function: "Direct air into each lung."), LessonStructure(name: "Bronchioles", function: "Regulate and distribute airflow."), LessonStructure(name: "Cilia", function: "Move trapped debris toward the throat.")]
+        ),
+        "lungs-alveoli": LessonContent(
+            overview: "Alveoli are tiny air sacs surrounded by dense capillary networks. Their thin, moist walls and enormous combined surface area allow gases to diffuse rapidly between air and blood.",
+            concepts: ["Oxygen diffuses from alveolar air into blood.", "Carbon dioxide diffuses from blood into alveoli.", "Surfactant reduces surface tension and helps prevent collapse."],
+            structures: [LessonStructure(name: "Type I cells", function: "Form most of the thin exchange surface."), LessonStructure(name: "Type II cells", function: "Produce pulmonary surfactant."), LessonStructure(name: "Capillaries", function: "Carry blood alongside alveolar air."), LessonStructure(name: "Alveolar macrophages", function: "Remove inhaled particles and microbes.")]
+        ),
+        "lungs-breathing": LessonContent(
+            overview: "Breathing depends on pressure changes created by respiratory muscles. Increasing chest volume lowers pressure and draws air in; decreasing volume raises pressure and pushes air out.",
+            concepts: ["The diaphragm contracts and descends during quiet inhalation.", "Elastic recoil normally drives quiet exhalation.", "Intercostal muscles move the ribs and assist ventilation."],
+            structures: [LessonStructure(name: "Diaphragm", function: "Primary muscle of inhalation."), LessonStructure(name: "External intercostals", function: "Elevate ribs during inhalation."), LessonStructure(name: "Pleural cavity", function: "Couples lung movement to the chest wall."), LessonStructure(name: "Elastic tissue", function: "Helps lungs recoil during exhalation.")]
+        )
+    ]
+
     static let aorticValve = AnatomyStructure(
         id: "aortic-valve",
         title: "Aortic Valve",

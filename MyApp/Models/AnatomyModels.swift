@@ -28,6 +28,17 @@ struct AnatomyLesson: Identifiable, Hashable {
     }
 }
 
+struct LessonContent: Hashable {
+    let overview: String
+    let concepts: [String]
+    let structures: [LessonStructure]
+}
+
+struct LessonStructure: Hashable {
+    let name: String
+    let function: String
+}
+
 enum LessonStatus: String, Hashable {
     case completed = "Completed"
     case inProgress = "In Progress"
