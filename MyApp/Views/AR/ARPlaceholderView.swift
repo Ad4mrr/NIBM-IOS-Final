@@ -74,9 +74,6 @@ struct ARPlaceholderView: View {
                     isPresentingAR = true
                 }
 
-                Text("Heart, Brain and Lungs use licensed anatomical models prepared for RealityKit. Models are for education, not diagnosis.")
-                    .font(.footnote)
-                    .foregroundStyle(AnatomyTheme.textSecondary)
             }
             .adaptiveContentWidth(900)
             .padding(20)

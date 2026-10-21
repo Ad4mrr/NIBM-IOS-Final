@@ -362,7 +362,6 @@ private enum ARMedicalOrganFactory {
         let scale = Float(0.20) / largestDimension
         loadedEntity.scale = SIMD3(repeating: scale)
         loadedEntity.position = -bounds.center * scale
-        applyTissueMaterial(to: loadedEntity, organID: id)
         container.addChild(loadedEntity)
 
         addHotspots(for: id, to: container)
