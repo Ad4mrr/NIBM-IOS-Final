@@ -1,3 +1,4 @@
+import AVKit
 import SwiftUI
 
 struct LessonDetailView: View {
@@ -12,11 +13,12 @@ struct LessonDetailView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 24) {
                 LessonHeader(lesson: lesson, organID: organID)
-                MotionLessonCard(organID: organID)
+                LessonVideoCard(organID: organID)
                 LessonTakeaway(text: lesson.keyTakeaway, color: AnatomyTheme.organColor(for: organID))
                 LessonConcepts(organID: organID)
                 StudySessionCard(lesson: lesson, organID: organID)
                 LessonFooterActions(
+                    organID: organID,
                     isCompleted: appState.isLessonComplete(lesson.id),
                     toggleCompletion: {
                         appState.toggleLessonCompletion(lesson.id)
@@ -115,57 +117,79 @@ private struct LessonHeader: View {
     }
 }
 
-private struct MotionLessonCard: View {
+private struct LessonVideoCard: View {
     let organID: String
-    @State private var isPlaying = false
-    @State private var pulse = false
+    @State private var player: AVPlayer?
+
+    private var lessonTitle: String {
+        switch organID {
+        case "brain": "Neural activity and brain regions"
+        case "lungs": "Breathing and lung expansion"
+        default: "Heartbeat and blood circulation"
+        }
+    }
+
+    private var videoName: String {
+        switch organID {
+        case "brain": "BrainVideo"
+        case "lungs": "LungsVideo"
+        default: "HeartVideo"
+        }
+    }
 
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 28)
-                .fill(AnatomyTheme.organGradient(for: organID))
+        VStack(alignment: .leading, spacing: 14) {
+            Label("VIDEO LESSON", systemImage: "play.rectangle.fill")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(AnatomyTheme.organColor(for: organID))
 
-            Circle()
-                .stroke(AnatomyTheme.organColor(for: organID).opacity(0.42), lineWidth: 2)
-                .frame(width: pulse ? 230 : 150)
-                .opacity(pulse ? 0 : 0.8)
+            Text(lessonTitle)
+                .font(.title3.weight(.bold))
 
-            OrganArtworkView(organID: organID, size: 205)
-                .scaleEffect(isPlaying && organID == "heart" ? (pulse ? 1.04 : 0.98) : 1)
-
-            VStack {
-                HStack {
-                    Label("MOTION LESSON", systemImage: "play.rectangle.fill")
-                        .font(.caption.weight(.bold))
-                    Spacer()
-                    Text("00:48")
-                        .font(.caption.monospacedDigit())
-                }
-                .foregroundStyle(.white.opacity(0.76))
-                Spacer()
-                Button {
-                    isPlaying.toggle()
-                    pulse = false
-                    if isPlaying {
-                        withAnimation(.easeOut(duration: 1.2).repeatForever(autoreverses: false)) {
-                            pulse = true
-                        }
+            if let player {
+                VideoPlayer(player: player)
+                    // The supplied anatomy videos are portrait, so the player
+                    // uses the same shape instead of adding black side bars.
+                    .aspectRatio(9 / 16, contentMode: .fit)
+                    .frame(maxWidth: 300)
+                    .frame(maxWidth: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(.white.opacity(0.12))
                     }
-                } label: {
-                    Label(isPlaying ? "Pause animation" : "Play anatomy motion", systemImage: isPlaying ? "pause.fill" : "play.fill")
-                        .font(.headline)
-                        .foregroundStyle(AnatomyTheme.background)
-                        .padding(.horizontal, 18)
-                        .frame(height: 48)
-                        .background(.white, in: Capsule())
-                }
+                    .accessibilityLabel("\(lessonTitle) video")
+            } else {
+                ContentUnavailableView(
+                    "Video unavailable",
+                    systemImage: "video.slash",
+                    description: Text("The lesson video could not be loaded.")
+                )
+                .frame(maxWidth: .infinity, minHeight: 220)
             }
-            .padding(18)
+
+            Text("Use the player controls to play, pause, scrub, or watch full screen.")
+                .font(.footnote)
+                .foregroundStyle(AnatomyTheme.textSecondary)
         }
-        .frame(height: 320)
-        .clipShape(RoundedRectangle(cornerRadius: 28))
-        .overlay { RoundedRectangle(cornerRadius: 28).stroke(.white.opacity(0.12)) }
-        .accessibilityElement(children: .contain)
+        .anatomyCard()
+        .onAppear {
+            loadVideo()
+        }
+        .onDisappear {
+            // Stop audio when the learner leaves the lesson screen.
+            player?.pause()
+        }
+    }
+
+    private func loadVideo() {
+        guard player == nil,
+              let videoURL = Bundle.main.url(forResource: videoName, withExtension: "mp4") else {
+            return
+        }
+
+        // AVPlayer supplies the standard iOS playback and full-screen controls.
+        player = AVPlayer(url: videoURL)
     }
 }
 
@@ -202,6 +226,7 @@ private struct LessonConcepts: View {
 }
 
 private struct LessonFooterActions: View {
+    let organID: String
     let isCompleted: Bool
     let toggleCompletion: () -> Void
 
@@ -213,7 +238,7 @@ private struct LessonFooterActions: View {
                 action: toggleCompletion
             )
             NavigationLink {
-                ARPlaceholderView()
+                ARPlaceholderView(initialOrganID: organID)
             } label: {
                 Label("Preview in AR Lab", systemImage: "arkit")
                     .font(.headline)

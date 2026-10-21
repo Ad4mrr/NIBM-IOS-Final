@@ -9,6 +9,7 @@ struct ARExperienceView: View {
     @State private var instruction = "Move your device slowly to find a table or floor."
     @State private var selectedHotspot: ARHotspot?
     @State private var resetID = UUID()
+    @State private var isShowingHotspotGuide = false
 
     private var organName: String {
         switch organID {
@@ -16,6 +17,10 @@ struct ARExperienceView: View {
         case "lungs": "Lungs"
         default: "Heart"
         }
+    }
+
+    private var availableHotspots: [ARHotspot] {
+        ARHotspot.content(for: organID)
     }
 
     var body: some View {
@@ -50,11 +55,16 @@ struct ARExperienceView: View {
 
                     Spacer()
 
-                    Text(organName)
+                    VStack(spacing: 2) {
+                        Text(organName)
                         .font(.headline)
-                        .padding(.horizontal, 16)
-                        .frame(height: 44)
-                        .background(.ultraThinMaterial, in: Capsule())
+                        Text("\(availableHotspots.count) learning points")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 16)
+                    .frame(height: 44)
+                    .background(.ultraThinMaterial, in: Capsule())
 
                     Spacer()
 
@@ -79,6 +89,17 @@ struct ARExperienceView: View {
                     .background(.ultraThinMaterial, in: Capsule())
 
                 Spacer()
+
+                Button {
+                    isShowingHotspotGuide = true
+                } label: {
+                    Label("Explore \(availableHotspots.count) labelled parts", systemImage: "list.bullet.circle.fill")
+                        .font(.subheadline.weight(.semibold))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .background(.ultraThinMaterial, in: Capsule())
+                }
+                .accessibilityHint("Shows all available anatomy hotspots")
 
                 if let selectedHotspot {
                     VStack(alignment: .leading, spacing: 6) {
@@ -112,12 +133,69 @@ struct ARExperienceView: View {
         }
         .preferredColorScheme(.dark)
         .animation(.easeInOut, value: selectedHotspot)
+        .sheet(isPresented: $isShowingHotspotGuide) {
+            ARHotspotGuide(organName: organName, hotspots: availableHotspots)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
     }
 }
 
-struct ARHotspot: Equatable {
+struct ARHotspot: Identifiable, Equatable {
+    let id: String
     let title: String
     let detail: String
+
+    static func content(for organID: String) -> [ARHotspot] {
+        switch organID {
+        case "brain":
+            [
+                ARHotspot(id: "cerebrum", title: "Cerebrum", detail: "The cerebrum supports thought, memory, sensation, language, and voluntary movement."),
+                ARHotspot(id: "cerebellum", title: "Cerebellum", detail: "The cerebellum coordinates balance, posture, and precise movement."),
+                ARHotspot(id: "brain-stem", title: "Brain Stem", detail: "The brain stem controls vital automatic functions such as breathing and heart rate."),
+                ARHotspot(id: "frontal-lobe", title: "Frontal Lobe", detail: "The frontal lobe supports planning, decision-making, speech, and voluntary movement."),
+                ARHotspot(id: "temporal-lobe", title: "Temporal Lobe", detail: "The temporal lobe helps process sound, language, emotion, and memory.")
+            ]
+        case "lungs":
+            [
+                ARHotspot(id: "trachea", title: "Trachea", detail: "The trachea carries air from the throat toward the left and right bronchi."),
+                ARHotspot(id: "bronchi", title: "Bronchi", detail: "The main bronchi branch from the trachea and carry air into each lung."),
+                ARHotspot(id: "left-lung", title: "Left Lung", detail: "The left lung has two lobes and leaves space for the heart."),
+                ARHotspot(id: "right-lung", title: "Right Lung", detail: "The right lung has three lobes and is slightly larger than the left lung."),
+                ARHotspot(id: "diaphragm", title: "Diaphragm", detail: "The diaphragm contracts and moves downward to draw air into the lungs.")
+            ]
+        default:
+            [
+                ARHotspot(id: "aorta", title: "Aorta", detail: "The aorta carries oxygen-rich blood from the left ventricle to the body."),
+                ARHotspot(id: "left-ventricle", title: "Left Ventricle", detail: "The left ventricle pumps oxygen-rich blood through the aortic valve into the aorta."),
+                ARHotspot(id: "right-atrium", title: "Right Atrium", detail: "The right atrium receives oxygen-poor blood returning from the body."),
+                ARHotspot(id: "pulmonary-artery", title: "Pulmonary Artery", detail: "The pulmonary artery carries oxygen-poor blood from the heart to the lungs."),
+                ARHotspot(id: "vena-cava", title: "Vena Cava", detail: "The venae cavae return oxygen-poor blood from the body to the right atrium.")
+            ]
+        }
+    }
+}
+
+private struct ARHotspotGuide: View {
+    let organName: String
+    let hotspots: [ARHotspot]
+
+    var body: some View {
+        NavigationStack {
+            List(hotspots) { hotspot in
+                VStack(alignment: .leading, spacing: 5) {
+                    Label(hotspot.title, systemImage: "scope")
+                        .font(.headline)
+                    Text(hotspot.detail)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 4)
+            }
+            .navigationTitle("\(organName) hotspots")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
 }
 
 private struct ARViewContainer: UIViewRepresentable {
@@ -249,40 +327,12 @@ private struct ARViewContainer: UIViewRepresentable {
         private func hotspot(for entity: Entity) -> ARHotspot? {
             var current: Entity? = entity
             while let candidate = current {
-                switch candidate.name {
-                case "hotspot-heart-aorta":
-                    return ARHotspot(
-                        title: "Aorta",
-                        detail: "The aorta carries oxygen-rich blood from the left ventricle to the body."
-                    )
-                case "hotspot-heart-ventricle":
-                    return ARHotspot(
-                        title: "Ventricle",
-                        detail: "The ventricles are the lower chambers that pump blood out of the heart."
-                    )
-                case "hotspot-brain-cerebrum":
-                    return ARHotspot(
-                        title: "Cerebrum",
-                        detail: "The cerebrum supports thought, memory, sensation, and voluntary movement."
-                    )
-                case "hotspot-brain-cerebellum":
-                    return ARHotspot(
-                        title: "Cerebellum",
-                        detail: "The cerebellum helps coordinate balance, posture, and precise movement."
-                    )
-                case "hotspot-lungs-trachea":
-                    return ARHotspot(
-                        title: "Trachea",
-                        detail: "The trachea carries air from the throat toward the left and right bronchi."
-                    )
-                case "hotspot-lungs-bronchi":
-                    return ARHotspot(
-                        title: "Bronchi",
-                        detail: "The main bronchi branch from the trachea and carry air into each lung."
-                    )
-                default:
-                    current = candidate.parent
+                let prefix = "hotspot-\(parent.organID)-"
+                if candidate.name.hasPrefix(prefix) {
+                    let hotspotID = String(candidate.name.dropFirst(prefix.count))
+                    return ARHotspot.content(for: parent.organID).first { $0.id == hotspotID }
                 }
+                current = candidate.parent
             }
             return nil
         }
@@ -357,12 +407,21 @@ private enum ARMedicalOrganFactory {
         case "brain":
             addHotspot(named: "hotspot-brain-cerebrum", position: [0.03, 0.075, 0.055], to: parent)
             addHotspot(named: "hotspot-brain-cerebellum", position: [0, -0.055, -0.07], to: parent)
+            addHotspot(named: "hotspot-brain-brain-stem", position: [0, -0.075, -0.025], to: parent)
+            addHotspot(named: "hotspot-brain-frontal-lobe", position: [0.055, 0.035, 0.045], to: parent)
+            addHotspot(named: "hotspot-brain-temporal-lobe", position: [0.065, -0.015, 0.025], to: parent)
         case "lungs":
             addHotspot(named: "hotspot-lungs-trachea", position: [0, 0.085, 0.025], to: parent)
             addHotspot(named: "hotspot-lungs-bronchi", position: [0, 0.015, 0.055], to: parent)
+            addHotspot(named: "hotspot-lungs-left-lung", position: [-0.055, 0.015, 0.045], to: parent)
+            addHotspot(named: "hotspot-lungs-right-lung", position: [0.055, 0.015, 0.045], to: parent)
+            addHotspot(named: "hotspot-lungs-diaphragm", position: [0, -0.09, 0.025], to: parent)
         default:
             addHotspot(named: "hotspot-heart-aorta", position: [0.02, 0.095, 0.025], to: parent)
-            addHotspot(named: "hotspot-heart-ventricle", position: [0, -0.055, 0.06], to: parent)
+            addHotspot(named: "hotspot-heart-left-ventricle", position: [-0.025, -0.055, 0.06], to: parent)
+            addHotspot(named: "hotspot-heart-right-atrium", position: [0.045, 0.025, 0.055], to: parent)
+            addHotspot(named: "hotspot-heart-pulmonary-artery", position: [-0.025, 0.07, 0.055], to: parent)
+            addHotspot(named: "hotspot-heart-vena-cava", position: [0.055, 0.07, 0.015], to: parent)
         }
     }
 
@@ -421,10 +480,13 @@ private enum ARProceduralOrganFactory {
             to: root
         )
         addHotspot(
-            named: "hotspot-heart-ventricle",
-            position: [0, -0.05, 0.055],
+            named: "hotspot-heart-left-ventricle",
+            position: [-0.02, -0.05, 0.055],
             to: root
         )
+        addHotspot(named: "hotspot-heart-right-atrium", position: [0.04, 0.025, 0.05], to: root)
+        addHotspot(named: "hotspot-heart-pulmonary-artery", position: [-0.025, 0.07, 0.05], to: root)
+        addHotspot(named: "hotspot-heart-vena-cava", position: [0.05, 0.065, 0], to: root)
         root.generateCollisionShapes(recursive: true)
         return root
     }
@@ -460,6 +522,9 @@ private enum ARProceduralOrganFactory {
             position: [0, -0.055, -0.08],
             to: root
         )
+        addHotspot(named: "hotspot-brain-brain-stem", position: [0, -0.07, -0.025], to: root)
+        addHotspot(named: "hotspot-brain-frontal-lobe", position: [0.055, 0.03, 0.04], to: root)
+        addHotspot(named: "hotspot-brain-temporal-lobe", position: [0.06, -0.015, 0.025], to: root)
         root.generateCollisionShapes(recursive: true)
         return root
     }
@@ -481,6 +546,9 @@ private enum ARProceduralOrganFactory {
 
         addHotspot(named: "hotspot-lungs-trachea", position: [0, 0.09, 0.02], to: root)
         addHotspot(named: "hotspot-lungs-bronchi", position: [0, 0.015, 0.06], to: root)
+        addHotspot(named: "hotspot-lungs-left-lung", position: [-0.05, 0.015, 0.045], to: root)
+        addHotspot(named: "hotspot-lungs-right-lung", position: [0.05, 0.015, 0.045], to: root)
+        addHotspot(named: "hotspot-lungs-diaphragm", position: [0, -0.085, 0.025], to: root)
         root.generateCollisionShapes(recursive: true)
         return root
     }
