@@ -7,9 +7,10 @@ struct ContentView: View {
     @State private var biometricService = BiometricService()
     @State private var notificationService = NotificationService()
     @State private var studyActivityService = StudyActivityService()
+    @State private var isShowingStartupSplash = true
 
     var body: some View {
-        Group {
+        ZStack {
             switch appState.route {
             case .authentication:
                 SplashView()
@@ -19,6 +20,16 @@ struct ContentView: View {
                 } else {
                     MainTabView()
                 }
+            }
+
+            if isShowingStartupSplash {
+                StartupSplashView {
+                    withAnimation(.easeOut(duration: 0.35)) {
+                        isShowingStartupSplash = false
+                    }
+                }
+                .transition(.opacity)
+                .zIndex(1)
             }
         }
         .environment(appState)

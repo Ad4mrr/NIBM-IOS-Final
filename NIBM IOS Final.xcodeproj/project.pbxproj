@@ -45,6 +45,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B92A45A73088CA5000B42DC8 /* Exceptions for "MyApp" folder in "MyApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 000000000000000100000000 /* MyApp */;
+		};
 		B99C3CE0308548FF00394108 /* Exceptions for "AnatomyARProgress" folder in "AnatomyARProgressExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -57,6 +64,9 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		000000000000000000000010 /* MyApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B92A45A73088CA5000B42DC8 /* Exceptions for "MyApp" folder in "MyApp" target */,
+			);
 			path = MyApp;
 			sourceTree = "<group>";
 		};
@@ -425,6 +435,8 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MyApp/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = AnatomyAR;
 				INFOPLIST_KEY_NSCameraUsageDescription = "AnatomyAR uses the camera to place interactive anatomy models in your surroundings.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Use Face ID to securely unlock your AnatomyAR learning profile.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
@@ -434,6 +446,7 @@
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -466,6 +479,8 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MyApp/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = AnatomyAR;
 				INFOPLIST_KEY_NSCameraUsageDescription = "AnatomyAR uses the camera to place interactive anatomy models in your surroundings.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Use Face ID to securely unlock your AnatomyAR learning profile.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
@@ -475,6 +490,7 @@
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
