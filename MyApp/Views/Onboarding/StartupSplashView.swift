@@ -8,16 +8,22 @@ struct StartupSplashView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
+            AnatomyTheme.background
+                .ignoresSafeArea()
+
             Image("LaunchArtwork")
                 .resizable()
-                .scaledToFill()
+                .scaledToFit()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea()
 
             SplashLoadingBar(progress: progress)
                 .padding(.horizontal, 48)
                 .padding(.bottom, 42)
         }
-        .background(AnatomyTheme.background)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea()
+        .statusBarHidden()
         .task {
             await Task.yield()
 
