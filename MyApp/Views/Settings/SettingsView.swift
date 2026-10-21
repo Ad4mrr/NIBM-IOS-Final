@@ -4,6 +4,7 @@ struct SettingsView: View {
     @Environment(AppState.self) private var appState
     @Environment(FirebaseService.self) private var firebaseService
     @Environment(BiometricService.self) private var biometricService
+    @State private var isShowingResetConfirmation = false
 
     var body: some View {
         List {
@@ -31,6 +32,10 @@ struct SettingsView: View {
 
                 NavigationLink("Saved Structures") {
                     FavouritesView()
+                }
+
+                Button("Reset Study Progress", role: .destructive) {
+                    isShowingResetConfirmation = true
                 }
             }
 
@@ -72,18 +77,6 @@ struct SettingsView: View {
                     .foregroundStyle(AnatomyTheme.textSecondary)
             }
 
-            Section("Phase 1 State Previews") {
-                NavigationLink("Loading") {
-                    LoadingStateView()
-                }
-                NavigationLink("Backend Error") {
-                    BackendErrorView()
-                }
-                NavigationLink("Offline") {
-                    OfflineStateView()
-                }
-            }
-
             Section("About") {
                 LabeledContent("Application", value: "AnatomyAR")
                 LabeledContent("Phase", value: "Notifications")
@@ -98,5 +91,17 @@ struct SettingsView: View {
         }
         .navigationTitle("Profile & Settings")
         .preferredColorScheme(.dark)
+        .confirmationDialog(
+            "Reset all study progress?",
+            isPresented: $isShowingResetConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Reset Study Progress", role: .destructive) {
+                appState.resetStudyProgress()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Completed lessons and best quiz scores will be cleared. Your profile and saved structures will remain.")
+        }
     }
 }

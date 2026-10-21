@@ -99,6 +99,35 @@ final class AppState {
         updateWidgetProgress()
     }
 
+    func resetStudyProgress() {
+        let context = persistenceController.context
+
+        do {
+            let lessonRequest = NSFetchRequest<PersistedLessonProgress>(
+                entityName: "PersistedLessonProgress"
+            )
+            for lessonProgress in try context.fetch(lessonRequest) {
+                context.delete(lessonProgress)
+            }
+
+            let quizRequest = NSFetchRequest<PersistedQuizScore>(
+                entityName: "PersistedQuizScore"
+            )
+            for quizScore in try context.fetch(quizRequest) {
+                context.delete(quizScore)
+            }
+
+            try persistenceController.save()
+            completedLessonIDs = []
+            bestQuizScores = [:]
+            persistenceErrorMessage = nil
+            updateWidgetProgress()
+        } catch {
+            context.rollback()
+            recordPersistenceError(error)
+        }
+    }
+
     func isFavourite(_ structureID: String) -> Bool {
         favouriteStructureIDs.contains(structureID)
     }
