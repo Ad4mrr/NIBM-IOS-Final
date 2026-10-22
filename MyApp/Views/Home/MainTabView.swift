@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct MainTabView: View {
+    @Environment(NetworkMonitor.self) private var networkMonitor
+
     var body: some View {
         TabView {
             Tab("Home", systemImage: "house.fill") {
@@ -23,6 +25,18 @@ struct MainTabView: View {
         .defaultAdaptableTabBarPlacement(.sidebar)
         .tint(AnatomyTheme.teal)
         .preferredColorScheme(.dark)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if !networkMonitor.isConnected {
+                Label("Offline — your study content and progress remain available", systemImage: "wifi.slash")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(.orange)
+                    .accessibilityLabel("Offline. Your study content and progress remain available.")
+            }
+        }
+        .animation(.easeInOut, value: networkMonitor.isConnected)
     }
 }
 

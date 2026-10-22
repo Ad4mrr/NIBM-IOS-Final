@@ -148,6 +148,44 @@ final class FirebaseService {
         }
     }
 
+    func synchronizeStudyProgress(local: StudyProgressSnapshot) async -> StudyProgressSnapshot? {
+        guard let userID = Auth.auth().currentUser?.uid else { return nil }
+
+        do {
+            let reference = Firestore.firestore()
+                .collection("users")
+                .document(userID)
+                .collection("study")
+                .document("progress")
+            let snapshot = try await reference.getDocument()
+
+            guard let data = snapshot.data() else {
+                try await saveStudyProgress(local, to: reference)
+                return local
+            }
+
+            return decodeStudyProgress(data)
+        } catch {
+            errorMessage = friendlyMessage(for: error)
+            return nil
+        }
+    }
+
+    func saveCurrentStudyProgress(_ progress: StudyProgressSnapshot) async {
+        guard let userID = Auth.auth().currentUser?.uid else { return }
+
+        do {
+            let reference = Firestore.firestore()
+                .collection("users")
+                .document(userID)
+                .collection("study")
+                .document("progress")
+            try await saveStudyProgress(progress, to: reference)
+        } catch {
+            errorMessage = friendlyMessage(for: error)
+        }
+    }
+
     private func fetchLearnerProfile(userID: String) async throws -> RemoteLearnerProfile? {
         let snapshot = try await Firestore.firestore()
             .collection("users")
@@ -183,6 +221,33 @@ final class FirebaseService {
                 ],
                 merge: true
             )
+    }
+
+    private func saveStudyProgress(
+        _ progress: StudyProgressSnapshot,
+        to reference: DocumentReference
+    ) async throws {
+        try await reference.setData([
+            "completedLessonIDs": Array(progress.completedLessonIDs).sorted(),
+            "favouriteStructureIDs": Array(progress.favouriteStructureIDs).sorted(),
+            "bestQuizScores": progress.bestQuizScores,
+            "updatedAt": FieldValue.serverTimestamp()
+        ])
+    }
+
+    private func decodeStudyProgress(_ data: [String: Any]) -> StudyProgressSnapshot {
+        let rawScores = data["bestQuizScores"] as? [String: Any] ?? [:]
+        let scores = rawScores.reduce(into: [String: Int]()) { result, item in
+            if let score = item.value as? NSNumber {
+                result[item.key] = score.intValue
+            }
+        }
+
+        return StudyProgressSnapshot(
+            completedLessonIDs: Set(data["completedLessonIDs"] as? [String] ?? []),
+            favouriteStructureIDs: Set(data["favouriteStructureIDs"] as? [String] ?? []),
+            bestQuizScores: scores
+        )
     }
 
     private func validate(email: String, password: String) -> Bool {

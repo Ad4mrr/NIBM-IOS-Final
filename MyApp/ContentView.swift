@@ -7,6 +7,7 @@ struct ContentView: View {
     @State private var biometricService = BiometricService()
     @State private var notificationService = NotificationService()
     @State private var studyActivityService = StudyActivityService()
+    @State private var networkMonitor = NetworkMonitor()
     @State private var isShowingStartupSplash = true
 
     var body: some View {
@@ -37,9 +38,11 @@ struct ContentView: View {
         .environment(biometricService)
         .environment(notificationService)
         .environment(studyActivityService)
+        .environment(networkMonitor)
         .animation(.easeInOut(duration: 0.3), value: appState.route)
         .task {
             firebaseService.startObservingAuthentication()
+            networkMonitor.start()
             await notificationService.refreshAuthorizationStatus()
             studyActivityService.refresh()
 
@@ -47,13 +50,34 @@ struct ContentView: View {
                 if let profile = await firebaseService.fetchCurrentLearnerProfile() {
                     appState.applyRemoteProfile(profile)
                 }
+                await synchronizeStudyProgress()
                 appState.route = .main
+            }
+        }
+        .onChange(of: appState.studyProgressSnapshot) { _, progress in
+            guard firebaseService.isAuthenticated else { return }
+            Task {
+                await firebaseService.saveCurrentStudyProgress(progress)
+            }
+        }
+        .onChange(of: firebaseService.isAuthenticated) { wasAuthenticated, isAuthenticated in
+            guard isAuthenticated, !wasAuthenticated else { return }
+            Task {
+                await synchronizeStudyProgress()
             }
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .background {
                 biometricService.lock()
             }
+        }
+    }
+
+    private func synchronizeStudyProgress() async {
+        if let remote = await firebaseService.synchronizeStudyProgress(
+            local: appState.studyProgressSnapshot
+        ) {
+            appState.applyRemoteStudyProgress(remote)
         }
     }
 }

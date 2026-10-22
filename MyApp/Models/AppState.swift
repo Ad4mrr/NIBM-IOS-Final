@@ -7,6 +7,12 @@ enum AppRoute: Equatable {
     case main
 }
 
+struct StudyProgressSnapshot: Equatable {
+    let completedLessonIDs: Set<String>
+    let favouriteStructureIDs: Set<String>
+    let bestQuizScores: [String: Int]
+}
+
 @MainActor
 @Observable
 final class AppState {
@@ -53,6 +59,24 @@ final class AppState {
 
     func isLessonComplete(_ lessonID: String) -> Bool {
         completedLessonIDs.contains(lessonID)
+    }
+
+    var studyProgressSnapshot: StudyProgressSnapshot {
+        StudyProgressSnapshot(
+            completedLessonIDs: completedLessonIDs,
+            favouriteStructureIDs: favouriteStructureIDs,
+            bestQuizScores: bestQuizScores
+        )
+    }
+
+    func applyRemoteStudyProgress(_ progress: StudyProgressSnapshot) {
+        guard progress != studyProgressSnapshot else { return }
+
+        completedLessonIDs = progress.completedLessonIDs
+        favouriteStructureIDs = progress.favouriteStructureIDs
+        bestQuizScores = progress.bestQuizScores
+        replacePersistedStudyProgress()
+        updateWidgetProgress()
     }
 
     func toggleLessonCompletion(_ lessonID: String) {
@@ -306,6 +330,50 @@ final class AppState {
             quizScore.bestScore = Int16(score)
             saveContext()
         } catch {
+            recordPersistenceError(error)
+        }
+    }
+
+    private func replacePersistedStudyProgress() {
+        let context = persistenceController.context
+
+        do {
+            for item in try context.fetch(NSFetchRequest<PersistedLessonProgress>(
+                entityName: "PersistedLessonProgress"
+            )) {
+                context.delete(item)
+            }
+            for lessonID in completedLessonIDs {
+                let progress = PersistedLessonProgress(context: context)
+                progress.lessonID = lessonID
+                progress.isCompleted = true
+            }
+
+            for item in try context.fetch(NSFetchRequest<PersistedFavouriteStructure>(
+                entityName: "PersistedFavouriteStructure"
+            )) {
+                context.delete(item)
+            }
+            for structureID in favouriteStructureIDs {
+                let favourite = PersistedFavouriteStructure(context: context)
+                favourite.structureID = structureID
+            }
+
+            for item in try context.fetch(NSFetchRequest<PersistedQuizScore>(
+                entityName: "PersistedQuizScore"
+            )) {
+                context.delete(item)
+            }
+            for (organID, score) in bestQuizScores {
+                let quizScore = PersistedQuizScore(context: context)
+                quizScore.organID = organID
+                quizScore.bestScore = Int16(score)
+            }
+
+            try persistenceController.save()
+            persistenceErrorMessage = nil
+        } catch {
+            context.rollback()
             recordPersistenceError(error)
         }
     }
