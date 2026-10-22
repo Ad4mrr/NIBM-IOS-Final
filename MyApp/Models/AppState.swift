@@ -111,6 +111,11 @@ final class AppState {
         bestQuizScores[organID, default: 0]
     }
 
+    var quizAverage: Int {
+        guard !bestQuizScores.isEmpty else { return 0 }
+        return bestQuizScores.values.reduce(0, +) / bestQuizScores.count
+    }
+
     func recordQuizResult(organID: String, correctAnswers: Int, totalQuestions: Int) {
         guard totalQuestions > 0 else { return }
 
@@ -222,7 +227,7 @@ final class AppState {
 
     private func seedInitialState() {
         completedLessonIDs = []
-        favouriteStructureIDs = Set(SampleAnatomyData.favourites.map(\.id))
+        favouriteStructureIDs = []
         bestQuizScores = [:]
     }
 
@@ -338,6 +343,7 @@ final class AppState {
         let context = persistenceController.context
 
         do {
+            // Replace the local rows so downloaded Firebase progress is also available offline.
             for item in try context.fetch(NSFetchRequest<PersistedLessonProgress>(
                 entityName: "PersistedLessonProgress"
             )) {

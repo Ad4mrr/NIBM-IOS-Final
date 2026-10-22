@@ -26,8 +26,7 @@ final class PersistenceController {
 
         container.loadPersistentStores { _, error in
             if let error {
-                // A production app could show a recovery screen. For this coursework,
-                // AppState also exposes the error so the UI can remain usable.
+                // Keep the app running and let AppState show the save error if needed.
                 print("Core Data store failed to load: \(error.localizedDescription)")
             }
         }
@@ -39,6 +38,7 @@ final class PersistenceController {
     }
 
     private static func makeManagedObjectModel() -> NSManagedObjectModel {
+        // The small Core Data model is created here instead of using a separate model file.
         let model = NSManagedObjectModel()
         model.entities = [
             makeLearnerProfileEntity(),

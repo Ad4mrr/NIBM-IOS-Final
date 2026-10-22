@@ -29,6 +29,8 @@ final class FirebaseService {
 
         authStateHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             Task { @MainActor in
+                // Let sign-in and account creation finish their setup before changing screens.
+                guard self?.isWorking == false else { return }
                 self?.isAuthenticated = user != nil
                 self?.currentUserEmail = user?.email
             }
@@ -85,6 +87,20 @@ final class FirebaseService {
                 email: email,
                 studyLevel: studyLevel,
                 dailyGoalMinutes: dailyGoalMinutes
+            )
+
+            let progressReference = Firestore.firestore()
+                .collection("users")
+                .document(result.user.uid)
+                .collection("study")
+                .document("progress")
+            try await saveStudyProgress(
+                StudyProgressSnapshot(
+                    completedLessonIDs: [],
+                    favouriteStructureIDs: [],
+                    bestQuizScores: [:]
+                ),
+                to: progressReference
             )
 
             isAuthenticated = true
@@ -246,6 +262,7 @@ final class FirebaseService {
                 .document("progress")
             let snapshot = try await reference.getDocument()
 
+            // A new account starts with the device's local progress. Existing accounts use Firebase.
             guard let data = snapshot.data() else {
                 try await saveStudyProgress(local, to: reference)
                 return local
@@ -378,6 +395,7 @@ final class FirebaseService {
     }
 
     private func reauthenticate(user: User, password: String) async throws {
+        // Firebase asks for a recent login before sensitive email or password changes.
         guard let email = user.email else {
             throw NSError(domain: "FirebaseService", code: 2, userInfo: [
                 NSLocalizedDescriptionKey: "This account does not have an email address."

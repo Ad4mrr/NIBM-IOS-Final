@@ -17,6 +17,7 @@ final class NetworkMonitor {
 
         monitor.pathUpdateHandler = { [weak self] path in
             let isConnected = path.status == .satisfied
+            // Network updates arrive on the monitor queue, but the UI reads this on the main actor.
             Task { @MainActor in
                 self?.isConnected = isConnected
             }

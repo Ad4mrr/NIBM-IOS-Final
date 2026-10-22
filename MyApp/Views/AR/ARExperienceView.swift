@@ -346,6 +346,7 @@ private struct ARViewContainer: UIViewRepresentable {
         private func hotspotNear(_ point: CGPoint, in arView: ARView) -> ARHotspot? {
             guard let placedEntity else { return nil }
 
+            // Use a forgiving screen-space tap area so the organ mesh cannot block small hotspots.
             let prefix = "hotspot-\(parent.organID)-"
             let candidates: [(entity: Entity, distance: CGFloat)] = hotspotEntities(
                 in: placedEntity,
@@ -468,6 +469,7 @@ private enum ARMedicalOrganFactory {
         modelExtents: SIMD3<Float>,
         to parent: Entity
     ) {
+        // Normalized positions keep each point attached when USDZ models have different sizes.
         let halfExtents = modelExtents / 2
 
         for placement in hotspotPlacements(for: organID) {

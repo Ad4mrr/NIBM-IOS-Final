@@ -2,17 +2,37 @@ import SwiftUI
 
 struct HomeView: View {
     @Environment(AppState.self) private var appState
-    private let heart = SampleAnatomyData.heart
+
+    private var featuredLesson: (organ: Organ, lesson: AnatomyLesson) {
+        for organ in SampleAnatomyData.organs {
+            if let lesson = organ.lessons.first(where: { !appState.isLessonComplete($0.id) }) {
+                return (organ, lesson)
+            }
+        }
+
+        let organ = SampleAnatomyData.heart
+        return (organ, organ.lessons[0])
+    }
+
+    private var hasStudyProgress: Bool {
+        !appState.completedLessonIDs.isEmpty || !appState.bestQuizScores.isEmpty
+    }
 
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 28) {
                 HomeHeader(learnerName: appState.learnerName)
                 ContinueLearningHero(
-                    organ: heart,
-                    progress: appState.progress(for: heart)
+                    organ: featuredLesson.organ,
+                    lesson: featuredLesson.lesson,
+                    progress: appState.progress(for: featuredLesson.organ),
+                    hasStudyProgress: hasStudyProgress
                 )
-                QuickStatsRow()
+                QuickStatsRow(
+                    completedLessonCount: appState.completedLessonIDs.count,
+                    quizAverage: appState.quizAverage,
+                    savedCount: appState.favouriteStructureIDs.count
+                )
                 OrganJourneySection(appState: appState)
             }
             .adaptiveContentWidth(900)
@@ -58,7 +78,9 @@ private struct HomeHeader: View {
 
 private struct ContinueLearningHero: View {
     let organ: Organ
+    let lesson: AnatomyLesson
     let progress: Double
+    let hasStudyProgress: Bool
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
@@ -77,22 +99,26 @@ private struct ContinueLearningHero: View {
                 .offset(y: -42)
 
             VStack(alignment: .leading, spacing: 14) {
-                StatusBadge(title: "CONTINUE", systemImage: "play.fill", color: .white)
+                StatusBadge(
+                    title: hasStudyProgress ? "CONTINUE" : "START HERE",
+                    systemImage: "play.fill",
+                    color: .white
+                )
 
                 Spacer()
 
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("Heart valves")
+                    Text(lesson.title)
                         .font(.title.weight(.bold))
-                    Text("Lesson 3 · 8 min · \(progress, format: .percent.precision(.fractionLength(0)))")
+                    Text("Lesson \(lesson.number) · \(lesson.durationMinutes) min · \(progress, format: .percent.precision(.fractionLength(0)))")
                         .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.72))
                 }
 
                 NavigationLink {
-                    LessonDetailView(lesson: SampleAnatomyData.heartLessons[2])
+                    LessonDetailView(lesson: lesson)
                 } label: {
-                    Label("Resume lesson", systemImage: "arrow.right")
+                    Label(hasStudyProgress ? "Continue lesson" : "Start lesson", systemImage: "arrow.right")
                         .font(.headline)
                         .foregroundStyle(AnatomyTheme.background)
                         .padding(.horizontal, 18)
@@ -113,11 +139,30 @@ private struct ContinueLearningHero: View {
 }
 
 private struct QuickStatsRow: View {
+    let completedLessonCount: Int
+    let quizAverage: Int
+    let savedCount: Int
+
     var body: some View {
         HStack(spacing: 12) {
-            QuickStat(value: "3", label: "day streak", symbol: "flame.fill", color: .orange)
-            QuickStat(value: "80%", label: "quiz avg.", symbol: "checkmark.seal.fill", color: AnatomyTheme.teal)
-            QuickStat(value: "5", label: "saved", symbol: "bookmark.fill", color: AnatomyTheme.brain)
+            QuickStat(
+                value: "\(completedLessonCount)",
+                label: "lessons done",
+                symbol: "checkmark.circle.fill",
+                color: .orange
+            )
+            QuickStat(
+                value: "\(quizAverage)%",
+                label: "quiz avg.",
+                symbol: "checkmark.seal.fill",
+                color: AnatomyTheme.teal
+            )
+            QuickStat(
+                value: "\(savedCount)",
+                label: "saved",
+                symbol: "bookmark.fill",
+                color: AnatomyTheme.brain
+            )
         }
     }
 }

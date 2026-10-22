@@ -63,6 +63,7 @@ struct LearnerProgressTests {
         let lessonID = SampleAnatomyData.heart.lessons[0].id
         let savedStructureID = SampleAnatomyData.aorta.id
 
+        appState.toggleFavourite(savedStructureID)
         appState.toggleLessonCompletion(lessonID)
         appState.recordQuizResult(organID: "heart", correctAnswers: 4, totalQuestions: 5)
 

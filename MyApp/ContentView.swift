@@ -56,6 +56,7 @@ struct ContentView: View {
         }
         .onChange(of: appState.studyProgressSnapshot) { _, progress in
             guard firebaseService.isAuthenticated else { return }
+            // Core Data stays as the offline copy, then signed-in changes are sent to Firebase.
             Task {
                 await firebaseService.saveCurrentStudyProgress(progress)
             }
