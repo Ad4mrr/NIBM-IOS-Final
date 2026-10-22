@@ -93,6 +93,36 @@ enum SampleAnatomyData {
         )
     ]
 
+    static let aorta = AnatomyStructure(
+        id: "aorta",
+        title: "Aorta",
+        organTitle: "Heart",
+        topic: "Major Vessels",
+        pathway: "Left Ventricle → Aortic Valve → Systemic Arteries",
+        functionDescription: "Carries oxygen-rich blood from the left ventricle to the body's systemic circulation.",
+        tags: ["Left Ventricle", "Systemic Circulation"]
+    )
+
+    static let cerebellum = AnatomyStructure(
+        id: "cerebellum",
+        title: "Cerebellum",
+        organTitle: "Brain",
+        topic: "Hindbrain",
+        pathway: "Sensory Input → Cerebellar Processing → Motor Coordination",
+        functionDescription: "Coordinates balance, posture, motor learning, and the timing and precision of movement.",
+        tags: ["Balance", "Movement"]
+    )
+
+    static let bronchi = AnatomyStructure(
+        id: "bronchi",
+        title: "Bronchi",
+        organTitle: "Lungs",
+        topic: "Airways",
+        pathway: "Trachea → Main Bronchi → Bronchioles",
+        functionDescription: "Conduct air from the trachea into each lung and branch to distribute it throughout the airways.",
+        tags: ["Airways", "Respiration"]
+    )
+
     static let aorticValve = AnatomyStructure(
         id: "aortic-valve",
         title: "Aortic Valve",
@@ -102,6 +132,8 @@ enum SampleAnatomyData {
         functionDescription: "Opens during ventricular contraction and prevents blood flowing backward into the left ventricle.",
         tags: ["Left Ventricle", "Aorta"]
     )
+
+    static let structures = [aorta, cerebellum, bronchi, aorticValve]
 
     static let quizQuestionsByOrganID: [String: [QuizQuestion]] = [
         "heart": [
@@ -127,11 +159,7 @@ enum SampleAnatomyData {
         ]
     ]
 
-    static let favourites = [
-        SavedStructure(id: "aorta", title: "Aorta", organTitle: "Heart", topic: "Major Vessels"),
-        SavedStructure(id: "cerebellum", title: "Cerebellum", organTitle: "Brain", topic: "Hindbrain"),
-        SavedStructure(id: "bronchi", title: "Bronchi", organTitle: "Lungs", topic: "Airways")
-    ]
+    static let favourites = [aorta, cerebellum, bronchi]
 
     static var heart: Organ {
         organs[0]

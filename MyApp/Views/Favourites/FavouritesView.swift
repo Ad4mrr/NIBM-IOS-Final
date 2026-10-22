@@ -3,8 +3,8 @@ import SwiftUI
 struct FavouritesView: View {
     @Environment(AppState.self) private var appState
 
-    private var visibleFavourites: [SavedStructure] {
-        SampleAnatomyData.favourites.filter {
+    private var visibleFavourites: [AnatomyStructure] {
+        SampleAnatomyData.structures.filter {
             appState.isFavourite($0.id)
         }
     }
@@ -14,11 +14,16 @@ struct FavouritesView: View {
             if visibleFavourites.isEmpty {
                 EmptyFavouritesView()
             } else {
-                List(visibleFavourites) { favourite in
+                List(visibleFavourites) { structure in
                     NavigationLink {
-                        StructureDetailView(structure: SampleAnatomyData.aorticValve)
+                        StructureDetailView(structure: structure)
                     } label: {
-                        FavouriteRow(favourite: favourite)
+                        FavouriteRow(structure: structure)
+                    }
+                    .swipeActions {
+                        Button("Remove", systemImage: "bookmark.slash", role: .destructive) {
+                            appState.toggleFavourite(structure.id)
+                        }
                     }
                 }
                 .listStyle(.plain)
@@ -30,7 +35,7 @@ struct FavouritesView: View {
 }
 
 private struct FavouriteRow: View {
-    let favourite: SavedStructure
+    let structure: AnatomyStructure
 
     var body: some View {
         HStack(spacing: 14) {
@@ -40,16 +45,16 @@ private struct FavouriteRow: View {
                 .background(AnatomyTheme.teal.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
 
             VStack(alignment: .leading) {
-                Text(favourite.title)
+                Text(structure.title)
                     .font(.headline)
-                Text("\(favourite.organTitle) • \(favourite.topic)")
+                Text("\(structure.organTitle) • \(structure.topic)")
                     .font(.subheadline)
                     .foregroundStyle(AnatomyTheme.textSecondary)
             }
         }
         .padding(.vertical, 5)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(favourite.title), \(favourite.organTitle), \(favourite.topic)")
+        .accessibilityLabel("\(structure.title), \(structure.organTitle), \(structure.topic)")
     }
 }
 
