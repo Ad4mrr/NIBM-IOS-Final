@@ -21,7 +21,7 @@ struct LessonDetailView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 24) {
                 LessonHeader(lesson: lesson, organID: organID)
-                LessonVideoCard(organID: organID, lessonTitle: lesson.title)
+                LessonVideoCard(organID: organID)
                 LessonExplanation(text: content.overview)
                 LessonTakeaway(text: lesson.keyTakeaway, color: AnatomyTheme.organColor(for: organID))
                 LessonConcepts(concepts: content.concepts, organID: organID)
@@ -133,11 +133,25 @@ private struct LessonHeader: View {
 
 private struct LessonVideoCard: View {
     let organID: String
-    let lessonTitle: String
     @State private var player: AVPlayer?
 
-    private var videoTitle: String {
-        "\(lessonTitle) video lesson"
+    private var videoTitle: LocalizedStringResource {
+        switch organID {
+        case "brain": "Brain general overview"
+        case "lungs": "Lungs general overview"
+        default: "Heart general overview"
+        }
+    }
+
+    private var videoDescription: LocalizedStringResource {
+        switch organID {
+        case "brain":
+            "This general brain overview supports every brain lesson."
+        case "lungs":
+            "This general lungs overview supports every lungs lesson."
+        default:
+            "This general heart overview supports every heart lesson."
+        }
     }
 
     private var videoName: String {
@@ -150,12 +164,16 @@ private struct LessonVideoCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Label("VIDEO LESSON", systemImage: "play.rectangle.fill")
+            Label("ORGAN OVERVIEW VIDEO", systemImage: "play.rectangle.fill")
                 .font(.caption.weight(.bold))
                 .foregroundStyle(AnatomyTheme.organColor(for: organID))
 
             Text(videoTitle)
                 .font(.title3.weight(.bold))
+
+            Text(videoDescription)
+                .font(.subheadline)
+                .foregroundStyle(AnatomyTheme.textSecondary)
 
             if let player {
                 VideoPlayer(player: player)
