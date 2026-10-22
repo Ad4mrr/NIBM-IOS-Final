@@ -20,7 +20,7 @@ struct ARPlaceholderView: View {
             VStack(alignment: .leading, spacing: 24) {
                 SectionTitle(
                     "Bring anatomy into your space",
-                    eyebrow: "AR LAB · PHASE 7",
+                    eyebrow: "AR LAB",
                     subtitle: "Choose an organ, scan a horizontal surface, then place and explore it."
                 )
 

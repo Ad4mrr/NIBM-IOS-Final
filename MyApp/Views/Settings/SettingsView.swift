@@ -79,7 +79,6 @@ struct SettingsView: View {
 
             Section("About") {
                 LabeledContent("Application", value: "AnatomyAR")
-                LabeledContent("Phase", value: "Notifications")
             }
 
             Section {
