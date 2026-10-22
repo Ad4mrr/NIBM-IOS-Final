@@ -25,7 +25,11 @@ struct LessonDetailView: View {
                 LessonExplanation(text: content.overview)
                 LessonTakeaway(text: lesson.keyTakeaway, color: AnatomyTheme.organColor(for: organID))
                 LessonConcepts(concepts: content.concepts, organID: organID)
-                LessonStructures(structures: content.structures, organID: organID)
+                LessonStructures(
+                    structures: content.structures,
+                    lesson: lesson,
+                    organID: organID
+                )
                 StudySessionCard(lesson: lesson, organID: organID)
                 LessonFooterActions(
                     organID: organID,
@@ -248,27 +252,70 @@ private struct LessonConcepts: View {
 }
 
 private struct LessonStructures: View {
+    @Environment(AppState.self) private var appState
+
     let structures: [LessonStructure]
+    let lesson: AnatomyLesson
     let organID: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             SectionTitle("Structures to know", eyebrow: "ANATOMY")
 
-            ForEach(structures, id: \.name) { structure in
-                VStack(alignment: .leading, spacing: 4) {
-                    Label(structure.name, systemImage: "scope")
-                        .font(.headline)
-                        .foregroundStyle(AnatomyTheme.organColor(for: organID))
-                    Text(structure.function)
-                        .font(.subheadline)
-                        .foregroundStyle(AnatomyTheme.textSecondary)
-                        .padding(.leading, 28)
-                }
+            ForEach(structures, id: \.name) { lessonStructure in
+                let structure = SampleAnatomyData.structure(
+                    for: lessonStructure,
+                    lesson: lesson,
+                    organID: organID
+                )
+
+                LessonStructureRow(
+                    name: lessonStructure.name,
+                    function: lessonStructure.function,
+                    organID: organID,
+                    isSaved: appState.isFavourite(structure.id),
+                    toggleSaved: {
+                        appState.toggleFavourite(structure.id)
+                    }
+                )
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .anatomyCard()
+    }
+}
+
+private struct LessonStructureRow: View {
+    let name: String
+    let function: String
+    let organID: String
+    let isSaved: Bool
+    let toggleSaved: () -> Void
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Label(name, systemImage: "scope")
+                    .font(.headline)
+                    .foregroundStyle(AnatomyTheme.organColor(for: organID))
+                Text(function)
+                    .font(.subheadline)
+                    .foregroundStyle(AnatomyTheme.textSecondary)
+                    .padding(.leading, 28)
+            }
+
+            Spacer(minLength: 8)
+
+            Button(action: toggleSaved) {
+                Label(
+                    isSaved ? "Saved" : "Save",
+                    systemImage: isSaved ? "bookmark.fill" : "bookmark"
+                )
+            }
+            .buttonStyle(.bordered)
+            .tint(AnatomyTheme.organColor(for: organID))
+            .accessibilityLabel(isSaved ? "Remove \(name) from Saved Structures" : "Save \(name)")
+        }
     }
 }
 

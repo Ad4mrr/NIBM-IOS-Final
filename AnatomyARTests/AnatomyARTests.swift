@@ -41,14 +41,40 @@ struct LearnerProgressTests {
         #expect(appState.progress(for: SampleAnatomyData.heart) == 0)
     }
 
-    @Test("Quiz progress keeps only the best score")
-    func quizKeepsBestScore() {
+    @Test("Quiz progress advances and keeps only the best score")
+    func quizProgressKeepsBestScore() {
         let appState = makeAppState()
 
-        appState.recordQuizResult(organID: "heart", correctAnswers: 4, totalQuestions: 5)
-        appState.recordQuizResult(organID: "heart", correctAnswers: 2, totalQuestions: 5)
+        #expect(appState.bestQuizScore(for: "heart") == 0)
 
+        appState.recordQuizResult(organID: "heart", correctAnswers: 3, totalQuestions: 5)
+        #expect(appState.bestQuizScore(for: "heart") == 60)
+
+        appState.recordQuizResult(organID: "heart", correctAnswers: 4, totalQuestions: 5)
         #expect(appState.bestQuizScore(for: "heart") == 80)
+
+        appState.recordQuizResult(organID: "heart", correctAnswers: 2, totalQuestions: 5)
+        #expect(appState.bestQuizScore(for: "heart") == 80)
+    }
+
+    @Test("Resetting study progress clears lessons and quiz scores")
+    func resetStudyProgress() {
+        let appState = makeAppState()
+        let lessonID = SampleAnatomyData.heart.lessons[0].id
+        let savedStructureID = SampleAnatomyData.aorta.id
+
+        appState.toggleLessonCompletion(lessonID)
+        appState.recordQuizResult(organID: "heart", correctAnswers: 4, totalQuestions: 5)
+
+        #expect(appState.isLessonComplete(lessonID))
+        #expect(appState.bestQuizScore(for: "heart") == 80)
+        #expect(appState.isFavourite(savedStructureID))
+
+        appState.resetStudyProgress()
+
+        #expect(!appState.isLessonComplete(lessonID))
+        #expect(appState.bestQuizScore(for: "heart") == 0)
+        #expect(appState.isFavourite(savedStructureID))
     }
 
     @Test("Invalid quiz totals do not create a score")
@@ -92,11 +118,38 @@ struct AnatomyModelTests {
         #expect(status.symbolName == expectedSymbol)
     }
 
-    @Test("The sample quiz answer points to the left ventricle")
-    func quizAnswerIsValid() {
-        let question = SampleAnatomyData.quizQuestion
+    @Test("Every quiz question has a valid answer")
+    func quizAnswersAreValid() {
+        let questions = SampleAnatomyData.quizQuestionsByOrganID.values.flatMap { $0 }
 
-        #expect(question.correctAnswerIndex < question.options.count)
-        #expect(question.options[question.correctAnswerIndex] == "Left Ventricle")
+        #expect(!questions.isEmpty)
+
+        for question in questions {
+            #expect(!question.options.isEmpty)
+            #expect(question.options.indices.contains(question.correctAnswerIndex))
+        }
+    }
+
+    @Test("Every lesson structure has a saved-structure detail record")
+    func lessonStructuresHaveDetailRecords() throws {
+        for organ in SampleAnatomyData.organs {
+            for lesson in organ.lessons {
+                let content = try #require(
+                    SampleAnatomyData.lessonContentByID[lesson.id],
+                    "Missing lesson content for \(lesson.id)"
+                )
+
+                for lessonStructure in content.structures {
+                    let structure = SampleAnatomyData.structure(
+                        for: lessonStructure,
+                        lesson: lesson,
+                        organID: organ.id
+                    )
+
+                    #expect(SampleAnatomyData.structures.contains(where: { $0.id == structure.id }))
+                    #expect(!structure.functionDescription.isEmpty)
+                }
+            }
+        }
     }
 }

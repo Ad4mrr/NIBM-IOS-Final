@@ -1,0 +1,30 @@
+{
+  "configurations" : [
+    {
+      "id" : "4A96907B-17EE-4B2C-984C-3E02EF004BE0",
+      "name" : "Default",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:NIBM IOS Final.xcodeproj",
+      "identifier" : "000000000000000100000000",
+      "name" : "MyApp"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:NIBM IOS Final.xcodeproj",
+        "identifier" : "B99C3CF030854C6200394108",
+        "name" : "AnatomyARTests"
+      }
+    }
+  ],
+  "version" : 1
+}

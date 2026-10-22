@@ -133,7 +133,63 @@ enum SampleAnatomyData {
         tags: ["Left Ventricle", "Aorta"]
     )
 
-    static let structures = [aorta, cerebellum, bronchi, aorticValve]
+    static let structures: [AnatomyStructure] = {
+        var catalog = [aorta, cerebellum, bronchi, aorticValve]
+
+        for organ in organs {
+            for lesson in organ.lessons {
+                guard let lessonContent = lessonContentByID[lesson.id] else { continue }
+
+                for lessonStructure in lessonContent.structures {
+                    let structure = structure(
+                        for: lessonStructure,
+                        lesson: lesson,
+                        organID: organ.id
+                    )
+
+                    if !catalog.contains(where: { $0.id == structure.id }) {
+                        catalog.append(structure)
+                    }
+                }
+            }
+        }
+
+        return catalog
+    }()
+
+    static func structure(
+        for lessonStructure: LessonStructure,
+        lesson: AnatomyLesson,
+        organID: String
+    ) -> AnatomyStructure {
+        switch (organID, lessonStructure.name.lowercased()) {
+        case ("heart", "aorta"):
+            return aorta
+        case ("heart", "aortic valve"):
+            return aorticValve
+        case ("brain", "cerebellum"):
+            return cerebellum
+        default:
+            break
+        }
+
+        let organ = organs.first(where: { $0.id == organID })
+        let organTitle = organ?.title ?? organID.capitalized
+        let slug = lessonStructure.name
+            .lowercased()
+            .split { !$0.isLetter && !$0.isNumber }
+            .joined(separator: "-")
+
+        return AnatomyStructure(
+            id: "\(organID)-\(slug)",
+            title: lessonStructure.name,
+            organTitle: organTitle,
+            topic: lesson.title,
+            pathway: "\(organTitle) → \(lesson.title) → \(lessonStructure.name)",
+            functionDescription: lessonStructure.function,
+            tags: [organ?.systemName ?? organTitle, lesson.title]
+        )
+    }
 
     static let quizQuestionsByOrganID: [String: [QuizQuestion]] = [
         "heart": [
