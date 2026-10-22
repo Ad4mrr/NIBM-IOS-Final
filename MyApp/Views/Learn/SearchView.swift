@@ -1,35 +1,34 @@
 import SwiftUI
 
 struct SearchView: View {
-    @State private var searchText = "ventricle"
+    @State private var searchText = ""
 
-    private let allResults = [
-        SearchResult(id: "left-ventricle", title: "Left Ventricle", detail: "Heart • Chamber", symbol: "heart.fill"),
-        SearchResult(id: "right-ventricle", title: "Right Ventricle", detail: "Heart • Chamber", symbol: "heart.fill"),
-        SearchResult(id: "ventricles-overview", title: "Ventricles Overview", detail: "Heart • Lesson", symbol: "book.fill"),
-        SearchResult(id: "aortic-valve", title: "Aortic Valve", detail: "Heart • Valve", symbol: "heart.circle.fill")
-    ]
+    private static let allResults = SearchResult.makeAllResults()
 
     private var visibleResults: [SearchResult] {
         guard !searchText.isEmpty else {
-            return allResults
+            return Self.allResults
         }
 
-        return allResults.filter {
-            $0.title.localizedCaseInsensitiveContains(searchText) ||
-            $0.detail.localizedCaseInsensitiveContains(searchText)
+        return Self.allResults.filter { result in
+            result.searchableText.localizedCaseInsensitiveContains(searchText)
         }
     }
 
     var body: some View {
         List(visibleResults) { result in
             NavigationLink {
-                StructureDetailView(structure: SampleAnatomyData.aorticValve)
+                SearchDestinationView(destination: result.destination)
             } label: {
-                SearchResultRow(result: result)
+                SearchResultRow(
+                    title: result.title,
+                    detail: result.detail,
+                    symbol: result.symbol,
+                    organID: result.organID
+                )
             }
         }
-        .searchable(text: $searchText, prompt: "Search anatomy")
+        .searchable(text: $searchText, prompt: "Search lessons and structures")
         .navigationTitle("Search")
         .overlay {
             if visibleResults.isEmpty {
@@ -40,30 +39,108 @@ struct SearchView: View {
 }
 
 private struct SearchResult: Identifiable {
+    enum Destination {
+        case lesson(AnatomyLesson)
+        case structure(AnatomyStructure)
+    }
+
     let id: String
     let title: String
     let detail: String
     let symbol: String
+    let organID: String
+    let searchableText: String
+    let destination: Destination
+
+    static func makeAllResults() -> [SearchResult] {
+        let lessonResults = SampleAnatomyData.organs.flatMap { organ in
+            organ.lessons.map { lesson in
+                SearchResult(
+                    id: "lesson-\(lesson.id)",
+                    title: lesson.title,
+                    detail: "\(organ.title) • Lesson",
+                    symbol: "book.fill",
+                    organID: organ.id,
+                    searchableText: [
+                        lesson.title,
+                        lesson.summary,
+                        lesson.keyTakeaway,
+                        organ.title,
+                        organ.systemName,
+                        "lesson"
+                    ].joined(separator: " "),
+                    destination: .lesson(lesson)
+                )
+            }
+        }
+
+        let structureResults = SampleAnatomyData.structures.map { structure in
+            let organID = SampleAnatomyData.organs.first {
+                $0.title == structure.organTitle
+            }?.id ?? "heart"
+
+            return SearchResult(
+                id: "structure-\(structure.id)",
+                title: structure.title,
+                detail: "\(structure.organTitle) • \(structure.topic)",
+                symbol: "scope",
+                organID: organID,
+                searchableText: [
+                    structure.title,
+                    structure.organTitle,
+                    structure.topic,
+                    structure.pathway,
+                    structure.functionDescription,
+                    structure.tags.joined(separator: " "),
+                    "structure"
+                ].joined(separator: " "),
+                destination: .structure(structure)
+            )
+        }
+
+        return (lessonResults + structureResults).sorted {
+            if $0.detail == $1.detail {
+                return $0.title.localizedStandardCompare($1.title) == .orderedAscending
+            }
+            return $0.detail.localizedStandardCompare($1.detail) == .orderedAscending
+        }
+    }
+}
+
+private struct SearchDestinationView: View {
+    let destination: SearchResult.Destination
+
+    var body: some View {
+        switch destination {
+        case .lesson(let lesson):
+            LessonDetailView(lesson: lesson)
+        case .structure(let structure):
+            StructureDetailView(structure: structure)
+        }
+    }
 }
 
 private struct SearchResultRow: View {
-    let result: SearchResult
+    let title: String
+    let detail: String
+    let symbol: String
+    let organID: String
 
     var body: some View {
         Label {
             VStack(alignment: .leading) {
-                Text(result.title)
+                Text(title)
                     .font(.headline)
-                Text(result.detail)
+                Text(detail)
                     .font(.subheadline)
                     .foregroundStyle(AnatomyTheme.textSecondary)
             }
         } icon: {
-            Image(systemName: result.symbol)
-                .foregroundStyle(AnatomyTheme.heart)
+            Image(systemName: symbol)
+                .foregroundStyle(AnatomyTheme.organColor(for: organID))
         }
         .padding(.vertical, 6)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(result.title), \(result.detail)")
+        .accessibilityLabel("\(title), \(detail)")
     }
 }
