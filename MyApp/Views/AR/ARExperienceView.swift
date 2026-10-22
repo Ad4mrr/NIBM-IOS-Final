@@ -224,6 +224,7 @@ private struct ARViewContainer: UIViewRepresentable {
 
     func updateUIView(_ arView: ARView, context: Context) {
         context.coordinator.parent = self
+        context.coordinator.updateHotspotSelection()
         if context.coordinator.currentResetID != resetID {
             context.coordinator.currentResetID = resetID
             context.coordinator.startSession()
@@ -272,6 +273,11 @@ private struct ARViewContainer: UIViewRepresentable {
         func handleTap(_ recognizer: UITapGestureRecognizer) {
             guard let arView else { return }
             let point = recognizer.location(in: arView)
+
+            if let hotspot = hotspotNear(point, in: arView) {
+                parent.selectedHotspot = hotspot
+                return
+            }
 
             if let tappedEntity = arView.entity(at: point),
                let hotspot = hotspot(for: tappedEntity) {
@@ -336,6 +342,58 @@ private struct ARViewContainer: UIViewRepresentable {
             }
             return nil
         }
+
+        private func hotspotNear(_ point: CGPoint, in arView: ARView) -> ARHotspot? {
+            guard let placedEntity else { return nil }
+
+            let prefix = "hotspot-\(parent.organID)-"
+            let candidates: [(entity: Entity, distance: CGFloat)] = hotspotEntities(
+                in: placedEntity,
+                prefix: prefix
+            ).compactMap { entity -> (entity: Entity, distance: CGFloat)? in
+                guard let screenPoint = arView.project(entity.position(relativeTo: nil)) else {
+                    return nil
+                }
+
+                let distance = hypot(screenPoint.x - point.x, screenPoint.y - point.y)
+                return (entity: entity, distance: distance)
+            }
+
+            guard let closest = candidates.min(by: { $0.distance < $1.distance }),
+                  closest.distance <= 52 else {
+                return nil
+            }
+
+            return hotspot(for: closest.entity)
+        }
+
+        private func hotspotEntities(in entity: Entity, prefix: String) -> [Entity] {
+            var matches = entity.name.hasPrefix(prefix) ? [entity] : []
+            for child in entity.children {
+                matches.append(contentsOf: hotspotEntities(in: child, prefix: prefix))
+            }
+            return matches
+        }
+
+        func updateHotspotSelection() {
+            guard let placedEntity else { return }
+
+            let prefix = "hotspot-\(parent.organID)-"
+            for entity in hotspotEntities(in: placedEntity, prefix: prefix) {
+                guard let marker = entity as? ModelEntity,
+                      var model = marker.components[ModelComponent.self] else {
+                    continue
+                }
+
+                let hotspotID = String(entity.name.dropFirst(prefix.count))
+                let isSelected = hotspotID == parent.selectedHotspot?.id
+                model.materials = [
+                    UnlitMaterial(color: isSelected ? .systemYellow : .cyan)
+                ]
+                marker.components.set(model)
+                marker.scale = SIMD3(repeating: isSelected ? 1.3 : 1)
+            }
+        }
     }
 }
 
@@ -364,7 +422,11 @@ private enum ARMedicalOrganFactory {
         loadedEntity.position = -bounds.center * scale
         container.addChild(loadedEntity)
 
-        addHotspots(for: id, to: container)
+        addHotspots(
+            for: id,
+            modelExtents: bounds.extents * scale,
+            to: container
+        )
         container.generateCollisionShapes(recursive: true)
         return container
     }
@@ -401,26 +463,53 @@ private enum ARMedicalOrganFactory {
         }
     }
 
-    private static func addHotspots(for organID: String, to parent: Entity) {
+    private static func addHotspots(
+        for organID: String,
+        modelExtents: SIMD3<Float>,
+        to parent: Entity
+    ) {
+        let halfExtents = modelExtents / 2
+
+        for placement in hotspotPlacements(for: organID) {
+            let position = SIMD3(
+                placement.normalizedPosition.x * halfExtents.x,
+                placement.normalizedPosition.y * halfExtents.y,
+                placement.normalizedPosition.z * halfExtents.z
+            )
+            addHotspot(
+                named: "hotspot-\(organID)-\(placement.id)",
+                position: position,
+                to: parent
+            )
+        }
+    }
+
+    private static func hotspotPlacements(for organID: String) -> [HotspotPlacement] {
         switch organID {
         case "brain":
-            addHotspot(named: "hotspot-brain-cerebrum", position: [0.03, 0.075, 0.055], to: parent)
-            addHotspot(named: "hotspot-brain-cerebellum", position: [0, -0.055, -0.07], to: parent)
-            addHotspot(named: "hotspot-brain-brain-stem", position: [0, -0.075, -0.025], to: parent)
-            addHotspot(named: "hotspot-brain-frontal-lobe", position: [0.055, 0.035, 0.045], to: parent)
-            addHotspot(named: "hotspot-brain-temporal-lobe", position: [0.065, -0.015, 0.025], to: parent)
+            [
+                HotspotPlacement(id: "cerebrum", normalizedPosition: [0.15, 0.54, 0.92]),
+                HotspotPlacement(id: "cerebellum", normalizedPosition: [0, -0.50, -0.94]),
+                HotspotPlacement(id: "brain-stem", normalizedPosition: [0, -0.88, -0.20]),
+                HotspotPlacement(id: "frontal-lobe", normalizedPosition: [0.72, 0.30, 0.72]),
+                HotspotPlacement(id: "temporal-lobe", normalizedPosition: [0.82, -0.20, 0.48])
+            ]
         case "lungs":
-            addHotspot(named: "hotspot-lungs-trachea", position: [0, 0.085, 0.025], to: parent)
-            addHotspot(named: "hotspot-lungs-bronchi", position: [0, 0.015, 0.055], to: parent)
-            addHotspot(named: "hotspot-lungs-left-lung", position: [-0.055, 0.015, 0.045], to: parent)
-            addHotspot(named: "hotspot-lungs-right-lung", position: [0.055, 0.015, 0.045], to: parent)
-            addHotspot(named: "hotspot-lungs-diaphragm", position: [0, -0.09, 0.025], to: parent)
+            [
+                HotspotPlacement(id: "trachea", normalizedPosition: [0, 0.88, 0.35]),
+                HotspotPlacement(id: "bronchi", normalizedPosition: [0, 0.16, 0.92]),
+                HotspotPlacement(id: "left-lung", normalizedPosition: [-0.72, 0.12, 0.82]),
+                HotspotPlacement(id: "right-lung", normalizedPosition: [0.72, 0.12, 0.82]),
+                HotspotPlacement(id: "diaphragm", normalizedPosition: [0, -0.92, 0.38])
+            ]
         default:
-            addHotspot(named: "hotspot-heart-aorta", position: [0.02, 0.095, 0.025], to: parent)
-            addHotspot(named: "hotspot-heart-left-ventricle", position: [-0.025, -0.055, 0.06], to: parent)
-            addHotspot(named: "hotspot-heart-right-atrium", position: [0.045, 0.025, 0.055], to: parent)
-            addHotspot(named: "hotspot-heart-pulmonary-artery", position: [-0.025, 0.07, 0.055], to: parent)
-            addHotspot(named: "hotspot-heart-vena-cava", position: [0.055, 0.07, 0.015], to: parent)
+            [
+                HotspotPlacement(id: "aorta", normalizedPosition: [0.18, 0.90, 0.32]),
+                HotspotPlacement(id: "left-ventricle", normalizedPosition: [-0.25, -0.38, 0.88]),
+                HotspotPlacement(id: "right-atrium", normalizedPosition: [0.58, 0.18, 0.86]),
+                HotspotPlacement(id: "pulmonary-artery", normalizedPosition: [-0.28, 0.62, 0.92]),
+                HotspotPlacement(id: "vena-cava", normalizedPosition: [0.68, 0.66, 0.24])
+            ]
         }
     }
 
@@ -436,6 +525,11 @@ private enum ARMedicalOrganFactory {
 
     private enum ARModelError: Error {
         case invalidBounds
+    }
+
+    private struct HotspotPlacement {
+        let id: String
+        let normalizedPosition: SIMD3<Float>
     }
 }
 
