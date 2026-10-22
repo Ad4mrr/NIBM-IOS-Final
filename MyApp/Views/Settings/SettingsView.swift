@@ -23,6 +23,10 @@ struct SettingsView: View {
                     }
                 }
                 .padding(.vertical, 6)
+
+                NavigationLink("Edit Profile") {
+                    EditProfileView()
+                }
             }
 
             Section("Study") {
@@ -40,6 +44,10 @@ struct SettingsView: View {
             }
 
             Section("Security") {
+                NavigationLink("Email & Password") {
+                    AccountSecurityView()
+                }
+
                 Toggle(
                     "Use \(biometricService.biometryName)",
                     isOn: Binding(

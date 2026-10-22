@@ -156,6 +156,20 @@ struct SignInView: View {
                     SecureField("Enter your password", text: $password)
                         .textContentType(.password)
                 }
+
+                Button("Forgot password?") {
+                    Task {
+                        await firebaseService.sendPasswordReset(email: email)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .trailing)
+
+                if let successMessage = firebaseService.successMessage {
+                    Label(successMessage, systemImage: "checkmark.circle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(AnatomyTheme.teal)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             },
             action: {
                 let profile = await firebaseService.signIn(

@@ -16,6 +16,7 @@ final class FirebaseService {
     private(set) var isWorking = false
     private(set) var currentUserEmail: String?
     private(set) var errorMessage: String?
+    private(set) var successMessage: String?
 
     @ObservationIgnored private var authStateHandle: AuthStateDidChangeListenerHandle?
 
@@ -39,6 +40,7 @@ final class FirebaseService {
 
         isWorking = true
         errorMessage = nil
+        successMessage = nil
         defer { isWorking = false }
 
         do {
@@ -68,6 +70,7 @@ final class FirebaseService {
 
         isWorking = true
         errorMessage = nil
+        successMessage = nil
         defer { isWorking = false }
 
         do {
@@ -135,6 +138,90 @@ final class FirebaseService {
 
     func clearError() {
         errorMessage = nil
+        successMessage = nil
+    }
+
+    func updateCurrentAccountProfile(
+        name: String,
+        studyLevel: String,
+        dailyGoalMinutes: Int
+    ) async -> Bool {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else {
+            errorMessage = "Please enter your name."
+            return false
+        }
+
+        isWorking = true
+        errorMessage = nil
+        successMessage = nil
+        defer { isWorking = false }
+
+        do {
+            guard let user = Auth.auth().currentUser else {
+                throw NSError(domain: "FirebaseService", code: 1, userInfo: [
+                    NSLocalizedDescriptionKey: "Please sign in before updating your profile."
+                ])
+            }
+            try await saveLearnerProfile(
+                userID: user.uid,
+                name: trimmedName,
+                email: user.email ?? "",
+                studyLevel: studyLevel,
+                dailyGoalMinutes: dailyGoalMinutes
+            )
+            successMessage = "Profile updated."
+            return true
+        } catch {
+            errorMessage = friendlyMessage(for: error)
+            return false
+        }
+    }
+
+    func updateCurrentEmail(to email: String, currentPassword: String) async -> Bool {
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard validate(email: trimmedEmail, password: currentPassword) else { return false }
+
+        return await performAccountUpdate(success: "Email address updated.") { user in
+            try await self.reauthenticate(user: user, password: currentPassword)
+            try await user.updateEmail(to: trimmedEmail)
+            self.currentUserEmail = trimmedEmail
+        }
+    }
+
+    func updateCurrentPassword(to password: String, currentPassword: String) async -> Bool {
+        guard password.count >= 6 else {
+            errorMessage = "Password must contain at least 6 characters."
+            return false
+        }
+
+        return await performAccountUpdate(success: "Password updated.") { user in
+            try await self.reauthenticate(user: user, password: currentPassword)
+            try await user.updatePassword(to: password)
+        }
+    }
+
+    func sendPasswordReset(email: String? = nil) async -> Bool {
+        let address = (email ?? currentUserEmail ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard address.contains("@"), address.contains(".") else {
+            errorMessage = "Please enter a valid email address."
+            return false
+        }
+
+        isWorking = true
+        errorMessage = nil
+        successMessage = nil
+        defer { isWorking = false }
+
+        do {
+            try await Auth.auth().sendPasswordReset(withEmail: address)
+            successMessage = "Password reset email sent."
+            return true
+        } catch {
+            errorMessage = friendlyMessage(for: error)
+            return false
+        }
     }
 
     func fetchCurrentLearnerProfile() async -> RemoteLearnerProfile? {
@@ -264,6 +351,40 @@ final class FirebaseService {
         }
 
         return true
+    }
+
+    private func performAccountUpdate(
+        success: String,
+        operation: (User) async throws -> Void
+    ) async -> Bool {
+        guard let user = Auth.auth().currentUser else {
+            errorMessage = "Please sign in before updating your account."
+            return false
+        }
+
+        isWorking = true
+        errorMessage = nil
+        successMessage = nil
+        defer { isWorking = false }
+
+        do {
+            try await operation(user)
+            successMessage = success
+            return true
+        } catch {
+            errorMessage = friendlyMessage(for: error)
+            return false
+        }
+    }
+
+    private func reauthenticate(user: User, password: String) async throws {
+        guard let email = user.email else {
+            throw NSError(domain: "FirebaseService", code: 2, userInfo: [
+                NSLocalizedDescriptionKey: "This account does not have an email address."
+            ])
+        }
+        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+        try await user.reauthenticate(with: credential)
     }
 
     private func friendlyMessage(for error: Error) -> String {
