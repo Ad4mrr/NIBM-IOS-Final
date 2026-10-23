@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum AnatomyTheme {
-    // color all screens
+    // colors all screens
     static let background = Color(red: 0.035, green: 0.055, blue: 0.09)
     static let backgroundRaised = Color(red: 0.06, green: 0.085, blue: 0.13)
     static let surface = Color.white.opacity(0.075)
