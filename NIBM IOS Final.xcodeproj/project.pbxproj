@@ -12,6 +12,7 @@
 		B99C3CD2308548FD00394108 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B99C3CD1308548FD00394108 /* WidgetKit.framework */; };
 		B99C3CD4308548FD00394108 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B99C3CD3308548FD00394108 /* SwiftUI.framework */; };
 		B99C3CDF308548FF00394108 /* AnatomyARProgressExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B99C3CD0308548FD00394108 /* AnatomyARProgressExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B9E8987E308B9D7100FFC3BF /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = B9E8987D308B9D7100FFC3BF /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,6 +43,7 @@
 		B99C3CD1308548FD00394108 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = /System/Library/Frameworks/WidgetKit.framework; sourceTree = "<absolute>"; };
 		B99C3CD3308548FD00394108 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = /System/Library/Frameworks/SwiftUI.framework; sourceTree = "<absolute>"; };
 		B99C3CF130854C6200394108 /* AnatomyARTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnatomyARTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B9E8987D308B9D7100FFC3BF /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B9FC0D49308A03D50028B4DA /* AnatomyARProgressExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AnatomyARProgressExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -117,6 +119,7 @@
 				B99C3CD5308548FD00394108 /* AnatomyARProgress */,
 				B99C3CF230854C6200394108 /* AnatomyARTests */,
 				B979F53F3083E68400B99478 /* Frameworks */,
+				B9E8987D308B9D7100FFC3BF /* README.md */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -259,6 +262,7 @@
 		B99C3CCE308548FD00394108 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				B9E8987E308B9D7100FFC3BF /* README.md in Resources */,
 			);
 		};
 		B99C3CEF30854C6200394108 /* Resources */ = {
