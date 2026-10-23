@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SplashView: View {
+    // logged-out start page
     var body: some View {
         NavigationStack {
             ZStack {
@@ -60,6 +61,7 @@ struct SplashView: View {
 }
 
 struct WelcomeView: View {
+    // welcome feature summary
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
@@ -111,6 +113,7 @@ struct WelcomeView: View {
 }
 
 private struct WelcomeFeature: View {
+    // welcome feature row
     let symbol: String
     let title: String
     let detail: String
@@ -133,6 +136,7 @@ private struct WelcomeFeature: View {
 }
 
 struct SignInView: View {
+    // profile load after login
     @Environment(AppState.self) private var appState
     @Environment(FirebaseService.self) private var firebaseService
     @State private var email = ""
@@ -193,6 +197,7 @@ struct SignInView: View {
 }
 
 struct CreateAccountView: View {
+    // new user onboarding
     @Environment(AppState.self) private var appState
     @Environment(FirebaseService.self) private var firebaseService
     @State private var name = ""
@@ -248,6 +253,7 @@ struct CreateAccountView: View {
 }
 
 private struct ModernAuthenticationForm<Fields: View>: View {
+    // shared login form layout
     let title: String
     let subtitle: String
     let actionTitle: String
@@ -303,6 +309,7 @@ private struct ModernAuthenticationForm<Fields: View>: View {
 }
 
 private struct ModernField<Field: View>: View {
+    // shared input style
     let title: String
     let symbol: String
     @ViewBuilder let field: Field

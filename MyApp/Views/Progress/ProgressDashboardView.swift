@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ProgressDashboardView: View {
+    // charts from saved progress
     @Environment(AppState.self) private var appState
 
     var body: some View {
@@ -37,6 +38,7 @@ struct ProgressDashboardView: View {
 }
 
 private struct ProgressHero: View {
+    // overall progress totals
     let appState: AppState
 
     private var overallProgress: Double {
@@ -115,6 +117,7 @@ private struct ProgressMetric: View {
 }
 
 private struct MasteryCard: View {
+    // live organ progress
     let organ: Organ
     let appState: AppState
 

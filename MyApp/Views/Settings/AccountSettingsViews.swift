@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct EditProfileView: View {
+    // temporary form values
     @Environment(AppState.self) private var appState
     @Environment(FirebaseService.self) private var firebaseService
     @Environment(\.dismiss) private var dismiss
@@ -56,6 +57,7 @@ struct EditProfileView: View {
     }
 
     private func save() async {
+        // state update after firebase
         let saved = await firebaseService.updateCurrentAccountProfile(
             name: name,
             studyLevel: studyLevel,
@@ -71,6 +73,7 @@ struct EditProfileView: View {
 }
 
 struct AccountSecurityView: View {
+    // email password changes separate confirmation fields
     @Environment(FirebaseService.self) private var firebaseService
 
     @State private var email = ""
@@ -81,6 +84,7 @@ struct AccountSecurityView: View {
     var body: some View {
         Form {
             Section("Email") {
+                // email changes current password reauthentication
                 TextField("Email address", text: $email)
                     .textContentType(.emailAddress)
                     .textInputAutocapitalization(.never)
@@ -103,6 +107,7 @@ struct AccountSecurityView: View {
             }
 
             Section("Password") {
+                // password confirmation separate email form
                 SecureField("Current password", text: $passwordConfirmation)
                     .textContentType(.password)
                 SecureField("New password", text: $newPassword)

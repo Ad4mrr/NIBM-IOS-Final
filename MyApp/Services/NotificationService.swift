@@ -6,6 +6,7 @@ import UserNotifications
 @MainActor
 @Observable
 final class NotificationService {
+    // local weekly reminders
     private enum StorageKey {
         static let isEnabled = "studyReminder.isEnabled"
         static let hour = "studyReminder.hour"
@@ -60,6 +61,7 @@ final class NotificationService {
     }
 
     func saveReminder(time: Date, activeDays: Set<Int>) async {
+        // weekly reminder refresh
         errorMessage = nil
         statusMessage = nil
 
@@ -102,6 +104,7 @@ final class NotificationService {
             statusMessage = "Your weekly study reminder is active."
 
 #if canImport(FirebaseMessaging)
+            // apns for firebase alerts
             UIApplication.shared.registerForRemoteNotifications()
 #endif
         } catch {
@@ -118,6 +121,7 @@ final class NotificationService {
     }
 
     private func requestAuthorizationIfNeeded() async throws -> Bool {
+        // permission prompt on first save
         await refreshAuthorizationStatus()
 
         if authorizationStatus == .notDetermined {
@@ -148,6 +152,7 @@ final class NotificationService {
     }
 
     private func calendarWeekday(for dayID: Int) -> Int {
+        // monday-first day conversion
         dayID == 7 ? 1 : dayID + 1
     }
 }

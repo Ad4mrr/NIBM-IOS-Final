@@ -3,6 +3,7 @@ import Foundation
 
 @MainActor
 final class PersistenceController {
+    // shared local data container
     static let shared = PersistenceController()
 
     let container: NSPersistentContainer
@@ -12,6 +13,7 @@ final class PersistenceController {
     }
 
     init(inMemory: Bool = false) {
+        // memory store for tests
         container = NSPersistentContainer(
             name: "AnatomyAR",
             managedObjectModel: Self.makeManagedObjectModel()
@@ -26,17 +28,21 @@ final class PersistenceController {
 
         container.loadPersistentStores { _, error in
             if let error {
+                // non-fatal save errors
                 print("Core Data store failed to load: \(error.localizedDescription)")
             }
         }
     }
 
     func save() throws {
+        // empty save check
         guard context.hasChanges else { return }
         try context.save()
     }
 
     private static func makeManagedObjectModel() -> NSManagedObjectModel {
+        // four local data entities
+        // code-built local data model
         let model = NSManagedObjectModel()
         model.entities = [
             makeLearnerProfileEntity(),

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct OrganProgressView: View {
+    // progress artwork mask
     let title: String
     let organID: String
     let progress: Double
@@ -49,6 +50,7 @@ struct OrganProgressView: View {
 }
 
 private struct OrganFillSymbol: View {
+    // grey and colour layers
     let organID: String
     let progress: Double
     let color: Color
@@ -62,6 +64,8 @@ private struct OrganFillSymbol: View {
             GeometryReader { geometry in
                 organArtwork
                     .frame(width: geometry.size.width, height: geometry.size.height)
+                    // colour reveal from bottom
+                    // same saved progress value
                     .mask(alignment: .bottom) {
                         Rectangle()
                             .frame(height: geometry.size.height * progress)

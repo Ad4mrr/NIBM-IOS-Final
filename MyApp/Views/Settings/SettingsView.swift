@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SettingsView: View {
+    // settings links
     @Environment(AppState.self) private var appState
     @Environment(FirebaseService.self) private var firebaseService
     @Environment(BiometricService.self) private var biometricService
@@ -39,11 +40,13 @@ struct SettingsView: View {
                 }
 
             Button("Reset Study Progress", role: .destructive) {
+                // reset confirmation
                 isShowingResetConfirmation = true
                 }
             }
 
             Section("Security") {
+                // separate account security
                 NavigationLink("Email & Password") {
                     AccountSecurityView()
                 }
@@ -53,6 +56,7 @@ struct SettingsView: View {
                     isOn: Binding(
                         get: { biometricService.isEnabled },
                         set: { shouldEnable in
+                            // biometric check on enable
                             Task {
                                 await biometricService.setEnabled(shouldEnable)
                             }

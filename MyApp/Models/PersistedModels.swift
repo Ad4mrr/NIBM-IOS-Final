@@ -1,5 +1,6 @@
 import CoreData
 
+// local data objects progress available offline
 @objc(PersistedLearnerProfile)
 final class PersistedLearnerProfile: NSManagedObject {
     @NSManaged var id: String

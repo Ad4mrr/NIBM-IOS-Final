@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct AnatomyCardStyle: ViewModifier {
+    // common card surface throughout
     func body(content: Content) -> some View {
         content
             .padding(18)

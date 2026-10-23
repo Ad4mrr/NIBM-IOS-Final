@@ -1,5 +1,6 @@
 import Foundation
 
+// value models lessons search quizzes saved
 struct Organ: Identifiable, Hashable {
     let id: String
     let title: String

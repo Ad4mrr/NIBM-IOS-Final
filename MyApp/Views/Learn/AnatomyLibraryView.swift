@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct AnatomyLibraryView: View {
+    // main starting point browsing organs searching
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 22) {
@@ -30,6 +31,7 @@ struct AnatomyLibraryView: View {
 }
 
 private struct LibraryHeader: View {
+    // title plus shortcuts saved items search
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack {
@@ -71,6 +73,7 @@ private struct LibraryHeader: View {
 }
 
 private struct OrganDiscoveryCard: View {
+    // visual summary organ learning grid
     let organ: Organ
 
     var body: some View {

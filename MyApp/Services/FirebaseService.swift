@@ -12,6 +12,7 @@ struct RemoteLearnerProfile {
 @MainActor
 @Observable
 final class FirebaseService {
+    // login profile and cloud data
     private(set) var isAuthenticated = false
     private(set) var isWorking = false
     private(set) var currentUserEmail: String?
@@ -21,6 +22,7 @@ final class FirebaseService {
     @ObservationIgnored private var authStateHandle: AuthStateDidChangeListenerHandle?
 
     func startObservingAuthentication() {
+        // firebase account listener
         guard authStateHandle == nil else { return }
 
         let currentUser = Auth.auth().currentUser
@@ -29,6 +31,7 @@ final class FirebaseService {
 
         authStateHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             Task { @MainActor in
+                // login setup before routing
                 guard self?.isWorking == false else { return }
                 self?.isAuthenticated = user != nil
                 self?.currentUserEmail = user?.email
@@ -37,6 +40,7 @@ final class FirebaseService {
     }
 
     func signIn(email: String, password: String) async -> RemoteLearnerProfile? {
+        // profile after login
         guard validate(email: email, password: password) else { return nil }
 
         isWorking = true
@@ -62,6 +66,7 @@ final class FirebaseService {
         studyLevel: String,
         dailyGoalMinutes: Int
     ) async -> Bool {
+        // login before firestore profile
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             errorMessage = "Please enter your name."
             return false
@@ -141,6 +146,7 @@ final class FirebaseService {
     }
 
     func signOut() {
+        // screen change after logout
         do {
             try Auth.auth().signOut()
             isAuthenticated = false
@@ -194,6 +200,7 @@ final class FirebaseService {
     }
 
     func updateCurrentEmail(to email: String, currentPassword: String) async -> Bool {
+        // current password for firebase
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
         guard validate(email: trimmedEmail, password: currentPassword) else { return false }
 
@@ -217,6 +224,7 @@ final class FirebaseService {
     }
 
     func sendPasswordReset(email: String? = nil) async -> Bool {
+        // email source by screen
         let address = (email ?? currentUserEmail ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard address.contains("@"), address.contains(".") else {
@@ -251,6 +259,7 @@ final class FirebaseService {
     }
 
     func synchronizeStudyProgress(local: StudyProgressSnapshot) async -> StudyProgressSnapshot? {
+        // cloud data wins
         guard let userID = Auth.auth().currentUser?.uid else { return nil }
 
         do {
@@ -261,6 +270,7 @@ final class FirebaseService {
                 .document("progress")
             let snapshot = try await reference.getDocument()
 
+            // local progress for new accounts
             guard let data = snapshot.data() else {
                 try await saveStudyProgress(local, to: reference)
                 return local
@@ -274,6 +284,7 @@ final class FirebaseService {
     }
 
     func saveCurrentStudyProgress(_ progress: StudyProgressSnapshot) async {
+        // local progress sync
         guard let userID = Auth.auth().currentUser?.uid else { return }
 
         do {
@@ -338,6 +349,7 @@ final class FirebaseService {
     }
 
     private func decodeStudyProgress(_ data: [String: Any]) -> StudyProgressSnapshot {
+        // firestore number conversion
         let rawScores = data["bestQuizScores"] as? [String: Any] ?? [:]
         let scores = rawScores.reduce(into: [String: Int]()) { result, item in
             if let score = item.value as? NSNumber {
@@ -393,6 +405,7 @@ final class FirebaseService {
     }
 
     private func reauthenticate(user: User, password: String) async throws {
+        // recent firebase login
         guard let email = user.email else {
             throw NSError(domain: "FirebaseService", code: 2, userInfo: [
                 NSLocalizedDescriptionKey: "This account does not have an email address."
@@ -403,6 +416,7 @@ final class FirebaseService {
     }
 
     private func friendlyMessage(for error: Error) -> String {
+        // friendly firebase errors
         let code = AuthErrorCode(rawValue: (error as NSError).code)
 
         switch code {

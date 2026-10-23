@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct QuizQuestionView: View {
+    // answer state resets question
     @Environment(AppState.self) private var appState
     let organID: String
     let questions: [QuizQuestion]
@@ -92,6 +93,7 @@ struct QuizQuestionView: View {
     }
 
     private func checkAnswer() {
+        // locked answer and explanation
         guard let selectedAnswerIndex, let currentQuestion else { return }
         if selectedAnswerIndex == currentQuestion.correctAnswerIndex {
             correctAnswers += 1
@@ -100,6 +102,7 @@ struct QuizQuestionView: View {
     }
 
     private func advanceQuiz() {
+        // best score after final question
         if currentQuestionIndex == questions.count - 1 {
             appState.recordQuizResult(
                 organID: organID,
@@ -115,6 +118,7 @@ struct QuizQuestionView: View {
     }
 
     private func resetQuiz() {
+        // quiz state reset
         currentQuestionIndex = 0
         selectedAnswerIndex = nil
         correctAnswers = 0
@@ -152,6 +156,7 @@ private struct QuizQuestionHeader: View {
 }
 
 private struct QuizOptionRow: View {
+    // answer state colours
     let title: String
     let letter: String
     let isSelected: Bool
@@ -188,6 +193,7 @@ private struct QuizOptionRow: View {
 }
 
 private struct QuizFeedbackView: View {
+    // checked answer details
     let question: QuizQuestion
     let wasCorrect: Bool
     let isLastQuestion: Bool
@@ -238,6 +244,7 @@ private struct FeedbackCard: View {
 }
 
 private struct QuizResultView: View {
+    // result page actions
     let correctAnswers: Int
     let totalQuestions: Int
     let organID: String

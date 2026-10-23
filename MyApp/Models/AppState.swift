@@ -16,6 +16,7 @@ struct StudyProgressSnapshot: Equatable {
 @MainActor
 @Observable
 final class AppState {
+    // profile and progress cache
     var route: AppRoute = .authentication
 
     var learnerName = "Ravindu" {
@@ -39,6 +40,7 @@ final class AppState {
     @ObservationIgnored private var isLoadingPersistedState = true
 
     init(persistenceController: PersistenceController? = nil) {
+        // test store support
         self.persistenceController = persistenceController ?? PersistenceController.shared
         loadPersistedState()
     }
@@ -48,6 +50,7 @@ final class AppState {
     }
 
     func applyRemoteProfile(_ profile: RemoteLearnerProfile) {
+        // local profile save
         learnerName = profile.learnerName
         studyLevel = profile.studyLevel
         dailyGoalMinutes = profile.dailyGoalMinutes
@@ -62,6 +65,7 @@ final class AppState {
     }
 
     var studyProgressSnapshot: StudyProgressSnapshot {
+        // firebase profile snapshot
         StudyProgressSnapshot(
             completedLessonIDs: completedLessonIDs,
             favouriteStructureIDs: favouriteStructureIDs,
@@ -70,6 +74,7 @@ final class AppState {
     }
 
     func applyRemoteStudyProgress(_ progress: StudyProgressSnapshot) {
+        // duplicate sync check
         guard progress != studyProgressSnapshot else { return }
 
         completedLessonIDs = progress.completedLessonIDs
@@ -80,6 +85,7 @@ final class AppState {
     }
 
     func toggleLessonCompletion(_ lessonID: String) {
+        // ui save and widget sync
         let isNowCompleted: Bool
 
         if completedLessonIDs.contains(lessonID) {
@@ -103,6 +109,7 @@ final class AppState {
     }
 
     func progress(for organ: Organ) -> Double {
+        // progress range 0 to 1
         guard !organ.lessons.isEmpty else { return 0 }
         return Double(completedLessonCount(for: organ)) / Double(organ.lessons.count)
     }
@@ -117,6 +124,7 @@ final class AppState {
     }
 
     func recordQuizResult(organID: String, correctAnswers: Int, totalQuestions: Int) {
+        // best score only
         guard totalQuestions > 0 else { return }
 
         let score = Int((Double(correctAnswers) / Double(totalQuestions) * 100).rounded())
@@ -129,6 +137,7 @@ final class AppState {
     }
 
     func resetStudyProgress() {
+        // saved item bookmarks
         let context = persistenceController.context
 
         do {
@@ -162,6 +171,7 @@ final class AppState {
     }
 
     func toggleFavourite(_ structureID: String) {
+        // duplicate item check
         if favouriteStructureIDs.contains(structureID) {
             favouriteStructureIDs.remove(structureID)
             deleteFavourite(structureID: structureID)
@@ -172,6 +182,7 @@ final class AppState {
     }
 
     private func loadPersistedState() {
+        // one-time local data load
         defer { updateWidgetProgress() }
         let context = persistenceController.context
 
@@ -226,6 +237,7 @@ final class AppState {
     }
 
     private func seedInitialState() {
+        // empty progress for new users
         completedLessonIDs = []
         favouriteStructureIDs = []
         bestQuizScores = [:]
@@ -261,6 +273,7 @@ final class AppState {
     }
 
     private func saveProfileWhenReady() {
+        // no saves during first load
         guard !isLoadingPersistedState else { return }
 
         let request = NSFetchRequest<PersistedLearnerProfile>(
@@ -282,6 +295,7 @@ final class AppState {
     }
 
     private func saveLessonProgress(lessonID: String, isCompleted: Bool) {
+        // lesson progress upsert
         let request = NSFetchRequest<PersistedLessonProgress>(
             entityName: "PersistedLessonProgress"
         )
@@ -322,6 +336,7 @@ final class AppState {
     }
 
     private func saveQuizScore(organID: String, score: Int) {
+        // one best score per organ
         let request = NSFetchRequest<PersistedQuizScore>(
             entityName: "PersistedQuizScore"
         )
@@ -343,6 +358,7 @@ final class AppState {
         let context = persistenceController.context
 
         do {
+            // firebase progress saved offline
             for item in try context.fetch(NSFetchRequest<PersistedLessonProgress>(
                 entityName: "PersistedLessonProgress"
             )) {
@@ -384,6 +400,7 @@ final class AppState {
     }
 
     private func saveContext() {
+        // shared local data errors
         do {
             try persistenceController.save()
             persistenceErrorMessage = nil
@@ -398,6 +415,7 @@ final class AppState {
     }
 
     private func updateWidgetProgress() {
+        // small widget data summary
         WidgetProgressService.update(
             organs: SampleAnatomyData.organs,
             completedLessonIDs: completedLessonIDs,

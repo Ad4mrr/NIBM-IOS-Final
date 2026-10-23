@@ -1,11 +1,13 @@
 import SwiftUI
 
 struct SearchView: View {
+    // search covers all local lessons items
     @State private var searchText = ""
 
     private static let allResults = SearchResult.makeAllResults()
 
     private var visibleResults: [SearchResult] {
+        // empty search everything
         guard !searchText.isEmpty else {
             return Self.allResults
         }
@@ -39,6 +41,7 @@ struct SearchView: View {
 }
 
 private struct SearchResult: Identifiable {
+    // destination links result real lesson item
     enum Destination {
         case lesson(AnatomyLesson)
         case structure(AnatomyStructure)
@@ -108,6 +111,7 @@ private struct SearchResult: Identifiable {
 }
 
 private struct SearchDestinationView: View {
+    // right detail without duplicate navigation code
     let destination: SearchResult.Destination
 
     var body: some View {

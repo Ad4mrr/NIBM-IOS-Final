@@ -1,10 +1,12 @@
 import SwiftUI
 
 struct ARPlaceholderView: View {
+    // organ picker for ar
     @State private var selectedOrganID: String
     @State private var isPresentingAR = false
 
     init(initialOrganID: String = "heart") {
+        // organ from saved item
         let supportedOrgans = ["heart", "brain", "lungs"]
         _selectedOrganID = State(
             initialValue: supportedOrgans.contains(initialOrganID) ? initialOrganID : "heart"
@@ -12,6 +14,7 @@ struct ARPlaceholderView: View {
     }
 
     private var selectedOrgan: Organ {
+        // safe organ fallback
         SampleAnatomyData.organs.first { $0.id == selectedOrganID } ?? SampleAnatomyData.heart
     }
 

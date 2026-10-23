@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct PrimaryButton: View {
+    // shared full width style main action
     let title: String
     let systemImage: String?
     let action: () -> Void

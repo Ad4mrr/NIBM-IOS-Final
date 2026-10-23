@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct FavouritesView: View {
+    // saved id lookup
     @Environment(AppState.self) private var appState
 
     private var visibleFavourites: [AnatomyStructure] {
@@ -35,6 +36,7 @@ struct FavouritesView: View {
 }
 
 private struct FavouriteRow: View {
+    // saved item summary
     let structure: AnatomyStructure
 
     var body: some View {
@@ -59,6 +61,7 @@ private struct FavouriteRow: View {
 }
 
 private struct EmptyFavouritesView: View {
+    // empty saved list msg
     var body: some View {
         ContentUnavailableView {
             Label("Saved Structures", systemImage: "bookmark")

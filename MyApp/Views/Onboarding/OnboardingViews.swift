@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct OnboardingIntroductionView: View {
+    // intro before preferences
     var body: some View {
         VStack(spacing: 28) {
             Spacer()
@@ -48,6 +49,7 @@ struct OnboardingIntroductionView: View {
 }
 
 private struct OnboardingFeatureRow: View {
+    // intro feature row
     let icon: String
     let title: String
     let description: String
@@ -76,6 +78,7 @@ private struct OnboardingFeatureRow: View {
 }
 
 struct ProfileSetupView: View {
+    // local and firebase choices
     @Environment(AppState.self) private var appState
     @Environment(FirebaseService.self) private var firebaseService
 
@@ -106,6 +109,7 @@ struct ProfileSetupView: View {
 
             Section {
                 Button {
+                    // firebase save before finish
                     Task {
                         let saved = await firebaseService.saveCurrentLearnerProfile(
                             name: appState.learnerName,

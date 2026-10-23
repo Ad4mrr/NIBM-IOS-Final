@@ -5,6 +5,7 @@ import Observation
 @MainActor
 @Observable
 final class BiometricService {
+    // biometric setting and checks
     private static let enabledKey = "biometricUnlockEnabled"
 
     private(set) var isEnabled: Bool
@@ -48,6 +49,7 @@ final class BiometricService {
     }
 
     func setEnabled(_ shouldEnable: Bool) async {
+        // check before biometric enable
         errorMessage = nil
 
         if shouldEnable {
@@ -71,6 +73,8 @@ final class BiometricService {
         let defaults = UserDefaults.standard
         defaults.set(value, forKey: Self.enabledKey)
 
+        // instant setting save
+        // setting disk sync
         defaults.synchronize()
         isEnabled = defaults.bool(forKey: Self.enabledKey)
     }
@@ -95,6 +99,7 @@ final class BiometricService {
     }
 
     private func authenticate(reason: String) async -> Bool {
+        // biometric system sheet
         let context = LAContext()
         context.localizedCancelTitle = "Use account login"
 

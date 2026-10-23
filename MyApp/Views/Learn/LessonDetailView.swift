@@ -2,6 +2,7 @@ import AVKit
 import SwiftUI
 
 struct LessonDetailView: View {
+    // lesson organ style and media
     @Environment(AppState.self) private var appState
     let lesson: AnatomyLesson
 
@@ -50,6 +51,7 @@ struct LessonDetailView: View {
 }
 
 private struct StudySessionCard: View {
+    // optional study timer
     @Environment(StudyActivityService.self) private var activityService
     let lesson: AnatomyLesson
     let organID: String
@@ -107,6 +109,7 @@ private struct StudySessionCard: View {
 }
 
 private struct LessonHeader: View {
+    // lesson number title summary together
     let lesson: AnatomyLesson
     let organID: String
 
@@ -132,6 +135,7 @@ private struct LessonHeader: View {
 }
 
 private struct LessonVideoCard: View {
+    // offline lesson video
     let organID: String
     @State private var player: AVPlayer?
 
@@ -177,6 +181,7 @@ private struct LessonVideoCard: View {
 
             if let player {
                 VideoPlayer(player: player)
+                    // edited lesson videos standard horizontal format
                     .aspectRatio(16 / 9, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
                     .overlay {
@@ -202,6 +207,7 @@ private struct LessonVideoCard: View {
             loadVideo()
         }
         .onDisappear {
+            // audio stop on exit
             player?.pause()
         }
     }
@@ -212,6 +218,7 @@ private struct LessonVideoCard: View {
             return
         }
 
+        // avplayer normal video controls
         player = AVPlayer(url: videoURL)
     }
 }
@@ -251,6 +258,7 @@ private struct LessonTakeaway: View {
 }
 
 private struct LessonConcepts: View {
+    // numbered key ideas
     let concepts: [String]
     let organID: String
 
@@ -267,6 +275,7 @@ private struct LessonConcepts: View {
 }
 
 private struct LessonStructures: View {
+    // lesson item bookmarks
     @Environment(AppState.self) private var appState
 
     let structures: [LessonStructure]
@@ -335,6 +344,7 @@ private struct LessonStructureRow: View {
 }
 
 private struct LessonFooterActions: View {
+    // progress and ar actions
     let organID: String
     let isCompleted: Bool
     let toggleCompletion: () -> Void

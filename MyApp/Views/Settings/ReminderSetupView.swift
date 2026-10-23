@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ReminderSetupView: View {
+    // saved reminder values
     @Environment(NotificationService.self) private var notificationService
     @State private var reminderTime = Calendar.current.date(
         bySettingHour: 19,
@@ -119,6 +120,7 @@ struct ReminderSetupView: View {
     }
 
     private func toggle(_ dayID: Int) {
+        // day selection toggle
         if activeDays.contains(dayID) {
             activeDays.remove(dayID)
         } else {

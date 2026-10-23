@@ -1,6 +1,7 @@
 import SwiftUI
 
 enum AnatomyTheme {
+    // color all screens
     static let background = Color(red: 0.035, green: 0.055, blue: 0.09)
     static let backgroundRaised = Color(red: 0.06, green: 0.085, blue: 0.13)
     static let surface = Color.white.opacity(0.075)
@@ -15,12 +16,14 @@ enum AnatomyTheme {
     static let incomplete = Color.white.opacity(0.16)
 
     static let backgroundGradient = LinearGradient(
+        // main dark background
         colors: [backgroundRaised, background, Color(red: 0.025, green: 0.038, blue: 0.065)],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
 
     static func organColor(for organID: String) -> Color {
+        // heart fallback for unknown ids
         switch organID {
         case "heart":
             heart

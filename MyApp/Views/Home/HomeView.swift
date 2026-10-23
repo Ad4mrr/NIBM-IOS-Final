@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HomeView: View {
+    // next unfinished lesson
     @Environment(AppState.self) private var appState
 
     private var featuredLesson: (organ: Organ, lesson: AnatomyLesson) {
@@ -45,6 +46,7 @@ struct HomeView: View {
 }
 
 private struct HomeHeader: View {
+    // greeting and profile link
     let learnerName: String
 
     var body: some View {
@@ -77,6 +79,7 @@ private struct HomeHeader: View {
 }
 
 private struct ContinueLearningHero: View {
+    // next lesson card
     let organ: Organ
     let lesson: AnatomyLesson
     let progress: Double
@@ -139,6 +142,7 @@ private struct ContinueLearningHero: View {
 }
 
 private struct QuickStatsRow: View {
+    // live app state values
     let completedLessonCount: Int
     let quizAverage: Int
     let savedCount: Int
@@ -191,6 +195,7 @@ private struct QuickStat: View {
 }
 
 private struct OrganJourneySection: View {
+    // progress card per organ
     let appState: AppState
 
     var body: some View {

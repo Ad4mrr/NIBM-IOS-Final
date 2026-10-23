@@ -5,6 +5,7 @@ import Observation
 @MainActor
 @Observable
 final class StudyActivityService {
+    // one live timer
     private(set) var isActive = false
     private(set) var activeLessonTitle: String?
     private(set) var errorMessage: String?
@@ -14,12 +15,14 @@ final class StudyActivityService {
     }
 
     func refresh() {
+        // live timer restore
         let activity = Activity<StudySessionAttributes>.activities.first
         isActive = activity != nil
         activeLessonTitle = activity?.attributes.lessonTitle
     }
 
     func start(lesson: AnatomyLesson, organName: String) async {
+        // live timer end time
         errorMessage = nil
 
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
@@ -53,6 +56,7 @@ final class StudyActivityService {
     }
 
     func endCurrentActivity() async {
+        // duplicate live timer cleanup
         for activity in Activity<StudySessionAttributes>.activities {
             let finalState = StudySessionAttributes.ContentState(
                 endTime: .now,
