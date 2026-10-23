@@ -5,7 +5,6 @@ import Observation
 @MainActor
 @Observable
 final class BiometricService {
-    // remembers the setting and performs Face ID or Touch ID checks
     private static let enabledKey = "biometricUnlockEnabled"
 
     private(set) var isEnabled: Bool
@@ -49,7 +48,6 @@ final class BiometricService {
     }
 
     func setEnabled(_ shouldEnable: Bool) async {
-        // turning it on requires a successful check first; turning it off does not
         errorMessage = nil
 
         if shouldEnable {
@@ -73,8 +71,6 @@ final class BiometricService {
         let defaults = UserDefaults.standard
         defaults.set(value, forKey: Self.enabledKey)
 
-        // this preference changes immediately before the user may close the app
-        // synchronizing here makes that single user-initiated change durable
         defaults.synchronize()
         isEnabled = defaults.bool(forKey: Self.enabledKey)
     }
@@ -99,7 +95,6 @@ final class BiometricService {
     }
 
     private func authenticate(reason: String) async -> Bool {
-        // LAContext shows the Face ID or Touch ID sheet
         let context = LAContext()
         context.localizedCancelTitle = "Use account login"
 

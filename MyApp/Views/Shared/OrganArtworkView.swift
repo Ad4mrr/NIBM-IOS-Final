@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct OrganArtworkView: View {
-    // reuses the same organ artwork across cards, headers and progress screens
     let organID: String
     var size: CGFloat = 180
     var showsGlow = true

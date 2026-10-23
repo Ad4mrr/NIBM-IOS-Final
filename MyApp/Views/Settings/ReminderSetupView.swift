@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct ReminderSetupView: View {
-    // start with saved values, then schedule only after Save is tapped
     @Environment(NotificationService.self) private var notificationService
     @State private var reminderTime = Calendar.current.date(
         bySettingHour: 19,
@@ -120,7 +119,6 @@ struct ReminderSetupView: View {
     }
 
     private func toggle(_ dayID: Int) {
-        // tapping an active day removes it; tapping again adds it back
         if activeDays.contains(dayID) {
             activeDays.remove(dayID)
         } else {

@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct MainTabView: View {
-    // each tab owns its own navigation stack so back history stays separate
     @Environment(NetworkMonitor.self) private var networkMonitor
 
     var body: some View {
@@ -27,7 +26,6 @@ struct MainTabView: View {
         .tint(AnatomyTheme.teal)
         .preferredColorScheme(.dark)
         .safeAreaInset(edge: .top, spacing: 0) {
-            // keep the offline message visible without blocking the current screen
             if !networkMonitor.isConnected {
                 Label("Offline — your study content and progress remain available", systemImage: "wifi.slash")
                     .font(.footnote.weight(.semibold))

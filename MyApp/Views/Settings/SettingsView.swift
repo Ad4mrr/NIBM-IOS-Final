@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct SettingsView: View {
-    // links to profile, reminders, saved items and account security
     @Environment(AppState.self) private var appState
     @Environment(FirebaseService.self) private var firebaseService
     @Environment(BiometricService.self) private var biometricService
@@ -40,13 +39,11 @@ struct SettingsView: View {
                 }
 
             Button("Reset Study Progress", role: .destructive) {
-                // ask before clearing lessons and quiz results
                 isShowingResetConfirmation = true
                 }
             }
 
             Section("Security") {
-                // sensitive account changes live on their own screen
                 NavigationLink("Email & Password") {
                     AccountSecurityView()
                 }
@@ -56,7 +53,6 @@ struct SettingsView: View {
                     isOn: Binding(
                         get: { biometricService.isEnabled },
                         set: { shouldEnable in
-                            // enabling biometrics may show the system check immediately
                             Task {
                                 await biometricService.setEnabled(shouldEnable)
                             }

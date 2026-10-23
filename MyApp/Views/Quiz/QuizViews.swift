@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct QuizQuestionView: View {
-    // answer state resets each question while the total score keeps increasing
     @Environment(AppState.self) private var appState
     let organID: String
     let questions: [QuizQuestion]
@@ -93,7 +92,6 @@ struct QuizQuestionView: View {
     }
 
     private func checkAnswer() {
-        // lock the selected option and reveal the explanation
         guard let selectedAnswerIndex, let currentQuestion else { return }
         if selectedAnswerIndex == currentQuestion.correctAnswerIndex {
             correctAnswers += 1
@@ -102,7 +100,6 @@ struct QuizQuestionView: View {
     }
 
     private func advanceQuiz() {
-        // the last question saves the best score before showing results
         if currentQuestionIndex == questions.count - 1 {
             appState.recordQuizResult(
                 organID: organID,
@@ -118,7 +115,6 @@ struct QuizQuestionView: View {
     }
 
     private func resetQuiz() {
-        // return temporary values to the first-question state
         currentQuestionIndex = 0
         selectedAnswerIndex = nil
         correctAnswers = 0
@@ -156,7 +152,6 @@ private struct QuizQuestionHeader: View {
 }
 
 private struct QuizOptionRow: View {
-    // colour and icon explain selected, correct and incorrect answers
     let title: String
     let letter: String
     let isSelected: Bool
@@ -193,7 +188,6 @@ private struct QuizOptionRow: View {
 }
 
 private struct QuizFeedbackView: View {
-    // this appears only after checking the current answer
     let question: QuizQuestion
     let wasCorrect: Bool
     let isLastQuestion: Bool
@@ -244,7 +238,6 @@ private struct FeedbackCard: View {
 }
 
 private struct QuizResultView: View {
-    // final score with retry and return-to-organ actions
     let correctAnswers: Int
     let totalQuestions: Int
     let organID: String

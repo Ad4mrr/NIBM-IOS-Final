@@ -3,7 +3,6 @@ import RealityKit
 import SwiftUI
 
 struct ARExperienceView: View {
-    // SwiftUI shows controls and RealityKit shows the organ
     let organID: String
 
     @Environment(\.dismiss) private var dismiss
@@ -21,7 +20,6 @@ struct ARExperienceView: View {
     }
 
     private var availableHotspots: [ARHotspot] {
-        // text shown in the guide and popup is kept separate from 3D placement
         ARHotspot.content(for: organID)
     }
 
@@ -201,7 +199,6 @@ private struct ARHotspotGuide: View {
 }
 
 private struct ARViewContainer: UIViewRepresentable {
-    // this bridge lets the UIKit AR view live inside the SwiftUI screen
     let organID: String
     let resetID: UUID
     @Binding var instruction: String
@@ -212,7 +209,6 @@ private struct ARViewContainer: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> ARView {
-        // create the camera view once and attach gestures through the coordinator
         let arView = ARView(frame: .zero)
         context.coordinator.arView = arView
         arView.session.delegate = context.coordinator
@@ -227,7 +223,6 @@ private struct ARViewContainer: UIViewRepresentable {
     }
 
     func updateUIView(_ arView: ARView, context: Context) {
-        // SwiftUI calls this after selection or reset changes
         context.coordinator.parent = self
         context.coordinator.updateHotspotSelection()
         if context.coordinator.currentResetID != resetID {
@@ -237,7 +232,6 @@ private struct ARViewContainer: UIViewRepresentable {
     }
 
     static func dismantleUIView(_ arView: ARView, coordinator: Coordinator) {
-        // stop the camera as soon as this screen is removed
         arView.session.pause()
     }
 
@@ -256,7 +250,6 @@ private struct ARViewContainer: UIViewRepresentable {
         }
 
         func startSession() {
-            // horizontal plane detection looks for a table or floor
             guard let arView else { return }
 
             placedEntity = nil
@@ -271,7 +264,6 @@ private struct ARViewContainer: UIViewRepresentable {
         }
 
         func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
-            // place the organ automatically on the first detected surface
             guard !hasDetectedPlane, anchors.contains(where: { $0 is ARPlaneAnchor }) else { return }
             hasDetectedPlane = true
             parent.instruction = "Surface found. Tap where you want to place the organ."
@@ -279,7 +271,6 @@ private struct ARViewContainer: UIViewRepresentable {
 
         @objc
         func handleTap(_ recognizer: UITapGestureRecognizer) {
-            // first try a direct entity hit, then use the larger screen-space area
             guard let arView else { return }
             let point = recognizer.location(in: arView)
 
@@ -310,7 +301,6 @@ private struct ARViewContainer: UIViewRepresentable {
         }
 
         private func loadAndPlaceOrgan(at transform: simd_float4x4) {
-            // loading is async so the camera view stays responsive
             guard let arView else { return }
 
             isLoadingModel = true
@@ -341,7 +331,6 @@ private struct ARViewContainer: UIViewRepresentable {
         }
 
         private func hotspot(for entity: Entity) -> ARHotspot? {
-            // walk up the entity tree because RealityKit may hit a child mesh
             var current: Entity? = entity
             while let candidate = current {
                 let prefix = "hotspot-\(parent.organID)-"
@@ -357,7 +346,6 @@ private struct ARViewContainer: UIViewRepresentable {
         private func hotspotNear(_ point: CGPoint, in arView: ARView) -> ARHotspot? {
             guard let placedEntity else { return nil }
 
-            // keep a bigger tap area around each hotspot
             let prefix = "hotspot-\(parent.organID)-"
             let candidates: [(entity: Entity, distance: CGFloat)] = hotspotEntities(
                 in: placedEntity,
@@ -380,7 +368,6 @@ private struct ARViewContainer: UIViewRepresentable {
         }
 
         private func hotspotEntities(in entity: Entity, prefix: String) -> [Entity] {
-            // recursively collect markers because they sit under the organ entity
             var matches = entity.name.hasPrefix(prefix) ? [entity] : []
             for child in entity.children {
                 matches.append(contentsOf: hotspotEntities(in: child, prefix: prefix))
@@ -389,7 +376,6 @@ private struct ARViewContainer: UIViewRepresentable {
         }
 
         func updateHotspotSelection() {
-            // cyan means available and yellow means currently selected
             guard let placedEntity else { return }
 
             let prefix = "hotspot-\(parent.organID)-"
@@ -414,7 +400,6 @@ private struct ARViewContainer: UIViewRepresentable {
 @MainActor
 private enum ARMedicalOrganFactory {
     static func makeOrgan(id: String) async throws -> ModelEntity {
-        // load the matching USDZ file and prepare it for gestures and hotspots
         let assetName: String
         switch id {
         case "brain": assetName = "Brain"
@@ -447,7 +432,6 @@ private enum ARMedicalOrganFactory {
     }
 
     private static func applyTissueMaterial(to entity: Entity, organID: String) {
-        // give every mesh the same organ colour while keeping realistic lighting
         var material = PhysicallyBasedMaterial()
         material.baseColor = .init(tint: tissueColor(for: organID))
         material.roughness = .init(floatLiteral: organID == "brain" ? 0.62 : 0.48)
@@ -484,8 +468,6 @@ private enum ARMedicalOrganFactory {
         modelExtents: SIMD3<Float>,
         to parent: Entity
     ) {
-        // convert easy-to-edit normalized coordinates into the model's real size
-        // normalized positions work with different model sizes
         let halfExtents = modelExtents / 2
 
         for placement in hotspotPlacements(for: organID) {
@@ -503,7 +485,6 @@ private enum ARMedicalOrganFactory {
     }
 
     private static func hotspotPlacements(for organID: String) -> [HotspotPlacement] {
-        // values are [left/right, bottom/top, back/front] from roughly -1 to 1
         switch organID {
         case "brain":
             [
@@ -533,7 +514,6 @@ private enum ARMedicalOrganFactory {
     }
 
     private static func addHotspot(named name: String, position: SIMD3<Float>, to parent: Entity) {
-        // a larger invisible collision sphere makes the visible marker easier to tap
         let hotspot = ModelEntity(
             mesh: .generateSphere(radius: 0.008),
             materials: [UnlitMaterial(color: .cyan)]

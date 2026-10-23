@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct OrganOverviewView: View {
-    // lesson rows and quiz progress both read the latest AppState values
     @Environment(AppState.self) private var appState
     let organ: Organ
 
@@ -22,7 +21,6 @@ struct OrganOverviewView: View {
 }
 
 private struct OrganOverviewHero: View {
-    // artwork and overall completion shown before the lesson list
     let organ: Organ
     let progress: Double
 
@@ -96,7 +94,6 @@ private struct LessonPathSection: View {
 }
 
 private struct ModernLessonRow: View {
-    // the status icon comes from the learner's saved progress
     let lesson: AnatomyLesson
     let color: Color
     let isCompleted: Bool
@@ -126,7 +123,6 @@ private struct ModernLessonRow: View {
 }
 
 private struct QuizLaunchCard: View {
-    // quiz entry also shows the best result for this organ
     let organTitle: String
     let organID: String
 

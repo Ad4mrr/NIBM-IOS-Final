@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct StartupSplashView: View {
-    // short launch animation shown while the app prepares its services
     @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
     @State private var progress = 0.0
 
@@ -47,7 +46,6 @@ struct StartupSplashView: View {
 }
 
 private struct SplashLoadingBar: View {
-    // animates once from empty to full while the splash is visible
     let progress: Double
 
     var body: some View {

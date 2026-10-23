@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct OrganProgressView: View {
-    // the mask reveals more artwork as lesson progress increases
     let title: String
     let organID: String
     let progress: Double
@@ -50,7 +49,6 @@ struct OrganProgressView: View {
 }
 
 private struct OrganFillSymbol: View {
-    // two artwork layers create the grey-to-colour reveal effect
     let organID: String
     let progress: Double
     let color: Color
@@ -64,8 +62,6 @@ private struct OrganFillSymbol: View {
             GeometryReader { geometry in
                 organArtwork
                     .frame(width: geometry.size.width, height: geometry.size.height)
-                    // reveal the real coloured organ artwork from the bottom
-                    // this uses the same Core Data-derived value as the percentage text
                     .mask(alignment: .bottom) {
                         Rectangle()
                             .frame(height: geometry.size.height * progress)

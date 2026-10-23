@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct EditProfileView: View {
-    // copy form values first so leaving does not change AppState
     @Environment(AppState.self) private var appState
     @Environment(FirebaseService.self) private var firebaseService
     @Environment(\.dismiss) private var dismiss
@@ -57,7 +56,6 @@ struct EditProfileView: View {
     }
 
     private func save() async {
-        // update AppState only after Firebase accepts the profile
         let saved = await firebaseService.updateCurrentAccountProfile(
             name: name,
             studyLevel: studyLevel,
@@ -73,7 +71,6 @@ struct EditProfileView: View {
 }
 
 struct AccountSecurityView: View {
-    // email and password changes use separate confirmation fields
     @Environment(FirebaseService.self) private var firebaseService
 
     @State private var email = ""
@@ -84,7 +81,6 @@ struct AccountSecurityView: View {
     var body: some View {
         Form {
             Section("Email") {
-                // email changes need the current password for reauthentication
                 TextField("Email address", text: $email)
                     .textContentType(.emailAddress)
                     .textInputAutocapitalization(.never)
@@ -107,7 +103,6 @@ struct AccountSecurityView: View {
             }
 
             Section("Password") {
-                // keep password confirmation separate from the email form
                 SecureField("Current password", text: $passwordConfirmation)
                     .textContentType(.password)
                 SecureField("New password", text: $newPassword)

@@ -2,7 +2,6 @@ import AVKit
 import SwiftUI
 
 struct LessonDetailView: View {
-    // the organ is found from the lesson so colours, media and AR stay matched
     @Environment(AppState.self) private var appState
     let lesson: AnatomyLesson
 
@@ -51,7 +50,6 @@ struct LessonDetailView: View {
 }
 
 private struct StudySessionCard: View {
-    // starts or ends the optional Live Activity study timer
     @Environment(StudyActivityService.self) private var activityService
     let lesson: AnatomyLesson
     let organID: String
@@ -109,7 +107,6 @@ private struct StudySessionCard: View {
 }
 
 private struct LessonHeader: View {
-    // keeps the lesson number, title and summary together
     let lesson: AnatomyLesson
     let organID: String
 
@@ -135,7 +132,6 @@ private struct LessonHeader: View {
 }
 
 private struct LessonVideoCard: View {
-    // plays the bundled overview video without needing the internet
     let organID: String
     @State private var player: AVPlayer?
 
@@ -181,7 +177,6 @@ private struct LessonVideoCard: View {
 
             if let player {
                 VideoPlayer(player: player)
-                    // the edited lesson videos use a standard horizontal format
                     .aspectRatio(16 / 9, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: 18))
                     .overlay {
@@ -207,7 +202,6 @@ private struct LessonVideoCard: View {
             loadVideo()
         }
         .onDisappear {
-            // stop audio when the learner leaves the lesson screen
             player?.pause()
         }
     }
@@ -218,7 +212,6 @@ private struct LessonVideoCard: View {
             return
         }
 
-        // AVPlayer gives the normal video controls
         player = AVPlayer(url: videoURL)
     }
 }
@@ -258,7 +251,6 @@ private struct LessonTakeaway: View {
 }
 
 private struct LessonConcepts: View {
-    // turns the key ideas into a short numbered list
     let concepts: [String]
     let organID: String
 
@@ -275,7 +267,6 @@ private struct LessonConcepts: View {
 }
 
 private struct LessonStructures: View {
-    // saving a lesson bookmarks every structure shown in this section
     @Environment(AppState.self) private var appState
 
     let structures: [LessonStructure]
@@ -344,7 +335,6 @@ private struct LessonStructureRow: View {
 }
 
 private struct LessonFooterActions: View {
-    // final actions update progress or open the same organ in AR
     let organID: String
     let isCompleted: Bool
     let toggleCompletion: () -> Void

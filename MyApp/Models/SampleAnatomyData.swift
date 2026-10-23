@@ -1,9 +1,7 @@
 import Foundation
 
-// all local lesson, structure and quiz content lives here in one place
 enum SampleAnatomyData {
     static let heartLessons = [
-        // these are reused while building the Heart organ below
         AnatomyLesson(id: "heart-overview", number: 1, title: "Overview", summary: "Meet the muscular pump at the centre of circulation.", keyTakeaway: "The heart moves blood through the lungs and the body.", durationMinutes: 6, structureCount: 4, status: .completed),
         AnatomyLesson(id: "heart-chambers", number: 2, title: "Chambers", summary: "Explore the four chambers of the heart.", keyTakeaway: "Atria receive blood while ventricles pump blood out.", durationMinutes: 8, structureCount: 4, status: .completed),
         AnatomyLesson(id: "heart-valves", number: 3, title: "Valves", summary: "See how valves guide blood in one direction.", keyTakeaway: "Valves prevent backward blood flow.", durationMinutes: 8, structureCount: 4, status: .inProgress),
@@ -12,7 +10,6 @@ enum SampleAnatomyData {
     ]
 
     static let organs = [
-        // main catalog used by Home, Learn, Search, Progress, AR and the widget
         Organ(id: "heart", title: "Heart", systemName: "Circulatory System", description: "Learn how the heart pumps blood around the body.", symbolName: "heart.fill", lessons: heartLessons),
         Organ(id: "brain", title: "Brain", systemName: "Nervous System", description: "Explore the control centre of the nervous system.", symbolName: "brain.head.profile", lessons: [
             AnatomyLesson(id: "brain-overview", number: 1, title: "Overview", summary: "Introduction to the brain.", keyTakeaway: "The brain coordinates the body's activity.", durationMinutes: 6, structureCount: 4, status: .completed),
@@ -29,7 +26,6 @@ enum SampleAnatomyData {
     ]
 
     static let lessonContentByID: [String: LessonContent] = [
-        // a lesson ID connects each lesson card to its written study content
         "heart-overview": LessonContent(
             overview: "The heart is a muscular organ in the chest between the lungs. Its rhythmic contractions create the pressure that moves blood through pulmonary circulation to the lungs and systemic circulation to the rest of the body.",
             concepts: ["The right side sends oxygen-poor blood to the lungs.", "The left side sends oxygen-rich blood to the body.", "The cardiac cycle alternates filling and pumping phases."],
@@ -138,7 +134,6 @@ enum SampleAnatomyData {
     )
 
     static let structures: [AnatomyStructure] = {
-        // start with hand-written records, then generate the remaining lesson parts
         var catalog = [aorta, cerebellum, bronchi, aorticValve]
 
         for organ in organs {
@@ -167,7 +162,6 @@ enum SampleAnatomyData {
         lesson: AnatomyLesson,
         organID: String
     ) -> AnatomyStructure {
-        // turn a short lesson structure into a complete searchable detail record
         switch (organID, lessonStructure.name.lowercased()) {
         case ("heart", "aorta"):
             return aorta
@@ -198,7 +192,6 @@ enum SampleAnatomyData {
     }
 
     static let quizQuestionsByOrganID: [String: [QuizQuestion]] = [
-        // grouping by organ makes it easy for each overview to open its quiz
         "heart": [
             QuizQuestion(id: "heart-question-1", organTitle: "Heart", prompt: "How many chambers does the human heart have?", options: ["Two", "Three", "Four", "Five"], correctAnswerIndex: 2, explanation: "The heart has two atria and two ventricles, making four chambers in total.", memoryTip: "Two chambers receive and two chambers pump."),
             QuizQuestion(id: "heart-question-2", organTitle: "Heart", prompt: "Which chamber receives oxygen-poor blood from the body?", options: ["Right Atrium", "Left Atrium", "Right Ventricle", "Left Ventricle"], correctAnswerIndex: 0, explanation: "The superior and inferior venae cavae return oxygen-poor blood to the right atrium.", memoryTip: "Right atrium receives returning blood."),

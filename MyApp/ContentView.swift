@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct ContentView: View {
-    // these shared services are passed down through the SwiftUI environment
     @Environment(\.scenePhase) private var scenePhase
     @State private var appState = AppState()
     @State private var firebaseService = FirebaseService()
@@ -12,7 +11,6 @@ struct ContentView: View {
     @State private var isShowingStartupSplash = true
 
     var body: some View {
-        // the route decides whether the learner sees login or the main app
         ZStack {
             switch appState.route {
             case .authentication:
@@ -58,7 +56,6 @@ struct ContentView: View {
         }
         .onChange(of: appState.studyProgressSnapshot) { _, progress in
             guard firebaseService.isAuthenticated else { return }
-            // keep Core Data offline and sync changes to Firebase
             Task {
                 await firebaseService.saveCurrentStudyProgress(progress)
             }
@@ -77,7 +74,6 @@ struct ContentView: View {
     }
 
     private func synchronizeStudyProgress() async {
-        // use the progress returned by Firebase
         if let remote = await firebaseService.synchronizeStudyProgress(
             local: appState.studyProgressSnapshot
         ) {

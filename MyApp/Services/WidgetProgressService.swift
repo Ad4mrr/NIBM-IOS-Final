@@ -2,7 +2,6 @@ import Foundation
 import WidgetKit
 
 enum WidgetProgressService {
-    // the app and widget must use the same App Group and matching keys
     static let widgetKind = "AnatomyARProgress"
     static let appGroupID = "group.com.ravinduwijethunga.AnatomyAR"
 
@@ -11,7 +10,6 @@ enum WidgetProgressService {
         completedLessonIDs: Set<String>,
         bestQuizScores: [String: Int]
     ) {
-        // store only simple numbers because the extension runs separately
         guard let defaults = UserDefaults(suiteName: appGroupID) else { return }
         let totalLessons = organs.reduce(0) { $0 + $1.lessons.count }
         let completedLessons = organs.reduce(0) { result, organ in
@@ -22,7 +20,6 @@ enum WidgetProgressService {
         defaults.set(totalLessons, forKey: "widget.totalLessons")
 
         for organ in organs {
-            // each organ gets its own lesson percentage and best quiz score
             let completed = organ.lessons.filter { completedLessonIDs.contains($0.id) }.count
             let progress = organ.lessons.isEmpty
                 ? 0

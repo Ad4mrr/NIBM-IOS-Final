@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct HomeView: View {
-    // the first unfinished lesson becomes the learner's next action
     @Environment(AppState.self) private var appState
 
     private var featuredLesson: (organ: Organ, lesson: AnatomyLesson) {
@@ -46,7 +45,6 @@ struct HomeView: View {
 }
 
 private struct HomeHeader: View {
-    // greeting and profile shortcut at the top of Home
     let learnerName: String
 
     var body: some View {
@@ -79,7 +77,6 @@ private struct HomeHeader: View {
 }
 
 private struct ContinueLearningHero: View {
-    // large card that sends the learner to their next lesson
     let organ: Organ
     let lesson: AnatomyLesson
     let progress: Double
@@ -142,7 +139,6 @@ private struct ContinueLearningHero: View {
 }
 
 private struct QuickStatsRow: View {
-    // these values come from AppState, so they refresh immediately
     let completedLessonCount: Int
     let quizAverage: Int
     let savedCount: Int
@@ -195,7 +191,6 @@ private struct QuickStat: View {
 }
 
 private struct OrganJourneySection: View {
-    // one live progress card for each organ
     let appState: AppState
 
     var body: some View {

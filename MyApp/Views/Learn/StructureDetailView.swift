@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct StructureDetailView: View {
-    // matching the organ keeps the detail page and AR destination consistent
     @Environment(AppState.self) private var appState
     let structure: AnatomyStructure
 
@@ -34,7 +33,6 @@ struct StructureDetailView: View {
 }
 
 private struct StructureHeader: View {
-    // icon and colour follow the structure's parent organ
     let structure: AnatomyStructure
     let organ: Organ
 
@@ -92,7 +90,6 @@ private struct StructureTags: View {
 }
 
 private struct StructureActions: View {
-    // saving updates AppState; AR receives the matching organ ID
     let organID: String
     let isSaved: Bool
     let toggleSaved: () -> Void
