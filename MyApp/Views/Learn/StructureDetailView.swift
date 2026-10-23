@@ -1,17 +1,24 @@
 import SwiftUI
 
 struct StructureDetailView: View {
+    // matching the organ keeps the detail page and AR destination consistent
     @Environment(AppState.self) private var appState
     let structure: AnatomyStructure
+
+    private var organ: Organ {
+        SampleAnatomyData.organs.first { $0.title == structure.organTitle }
+            ?? SampleAnatomyData.heart
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                StructureHeader(structure: structure)
+                StructureHeader(structure: structure, organ: organ)
                 StructureInformation(title: "STRUCTURE", text: structure.pathway)
                 StructureInformation(title: "FUNCTION", text: structure.functionDescription)
                 StructureTags(tags: structure.tags)
                 StructureActions(
+                    organID: organ.id,
                     isSaved: appState.isFavourite(structure.id),
                     toggleSaved: {
                         appState.toggleFavourite(structure.id)
@@ -27,17 +34,19 @@ struct StructureDetailView: View {
 }
 
 private struct StructureHeader: View {
+    // icon and colour follow the structure's parent organ
     let structure: AnatomyStructure
+    let organ: Organ
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("\(structure.organTitle) → \(structure.topic)")
                 .font(.subheadline)
-                .foregroundStyle(AnatomyTheme.heart)
+                .foregroundStyle(AnatomyTheme.organColor(for: organ.id))
 
-            Image(systemName: "heart.circle.fill")
+            Image(systemName: organ.symbolName)
                 .font(.system(size: 90))
-                .foregroundStyle(AnatomyTheme.heart)
+                .foregroundStyle(AnatomyTheme.organColor(for: organ.id))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 24)
 
@@ -83,6 +92,8 @@ private struct StructureTags: View {
 }
 
 private struct StructureActions: View {
+    // saving updates AppState; AR receives the matching organ ID
+    let organID: String
     let isSaved: Bool
     let toggleSaved: () -> Void
 
@@ -95,7 +106,7 @@ private struct StructureActions: View {
             )
 
             NavigationLink {
-                ARPlaceholderView()
+                ARPlaceholderView(initialOrganID: organID)
             } label: {
                 Label("View in AR", systemImage: "arkit")
                     .fontWeight(.semibold)

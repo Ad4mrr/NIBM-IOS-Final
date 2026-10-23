@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SplashView: View {
+    // logged-out landing screen before sign in or account creation
     var body: some View {
         NavigationStack {
             ZStack {
@@ -60,6 +61,7 @@ struct SplashView: View {
 }
 
 struct WelcomeView: View {
+    // gives a quick feature summary and separates sign in from registration
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
@@ -79,7 +81,7 @@ struct WelcomeView: View {
                 VStack(spacing: 12) {
                     WelcomeFeature(symbol: "books.vertical.fill", title: "Guided learning", detail: "Clear, bite-sized anatomy lessons")
                     WelcomeFeature(symbol: "brain.head.profile.fill", title: "Active recall", detail: "Quizzes that strengthen memory")
-                    WelcomeFeature(symbol: "arkit", title: "Spatial exploration", detail: "AR organ models are planned next")
+                    WelcomeFeature(symbol: "arkit", title: "Spatial exploration", detail: "Explore labelled organ models in AR")
                 }
 
                 NavigationLink {
@@ -111,6 +113,7 @@ struct WelcomeView: View {
 }
 
 private struct WelcomeFeature: View {
+    // reusable row for one feature on the welcome page
     let symbol: String
     let title: String
     let detail: String
@@ -133,6 +136,7 @@ private struct WelcomeFeature: View {
 }
 
 struct SignInView: View {
+    // successful sign in loads the profile before opening the main tabs
     @Environment(AppState.self) private var appState
     @Environment(FirebaseService.self) private var firebaseService
     @State private var email = ""
@@ -193,6 +197,7 @@ struct SignInView: View {
 }
 
 struct CreateAccountView: View {
+    // new accounts continue into onboarding to choose study preferences
     @Environment(AppState.self) private var appState
     @Environment(FirebaseService.self) private var firebaseService
     @State private var name = ""
@@ -248,6 +253,7 @@ struct CreateAccountView: View {
 }
 
 private struct ModernAuthenticationForm<Fields: View>: View {
+    // shared layout keeps sign-in and account creation visually consistent
     let title: String
     let subtitle: String
     let actionTitle: String
@@ -303,6 +309,7 @@ private struct ModernAuthenticationForm<Fields: View>: View {
 }
 
 private struct ModernField<Field: View>: View {
+    // adds the same title, icon and background around any input field
     let title: String
     let symbol: String
     @ViewBuilder let field: Field

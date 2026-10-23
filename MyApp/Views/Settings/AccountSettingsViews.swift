@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct EditProfileView: View {
+    // copy form values first so leaving does not change AppState
     @Environment(AppState.self) private var appState
     @Environment(FirebaseService.self) private var firebaseService
     @Environment(\.dismiss) private var dismiss
@@ -56,6 +57,7 @@ struct EditProfileView: View {
     }
 
     private func save() async {
+        // update AppState only after Firebase accepts the profile
         let saved = await firebaseService.updateCurrentAccountProfile(
             name: name,
             studyLevel: studyLevel,
@@ -71,38 +73,42 @@ struct EditProfileView: View {
 }
 
 struct AccountSecurityView: View {
+    // email and password changes use separate confirmation fields
     @Environment(FirebaseService.self) private var firebaseService
 
     @State private var email = ""
-    @State private var currentPassword = ""
+    @State private var emailPassword = ""
+    @State private var passwordConfirmation = ""
     @State private var newPassword = ""
 
     var body: some View {
         Form {
             Section("Email") {
+                // email changes need the current password for reauthentication
                 TextField("Email address", text: $email)
                     .textContentType(.emailAddress)
                     .textInputAutocapitalization(.never)
                     .keyboardType(.emailAddress)
 
-                SecureField("Current password", text: $currentPassword)
+                SecureField("Current password", text: $emailPassword)
                     .textContentType(.password)
 
                 Button("Update Email") {
                     Task {
                         if await firebaseService.updateCurrentEmail(
                             to: email,
-                            currentPassword: currentPassword
+                            currentPassword: emailPassword
                         ) {
-                            currentPassword = ""
+                            emailPassword = ""
                         }
                     }
                 }
-                .disabled(firebaseService.isWorking || currentPassword.isEmpty)
+                .disabled(firebaseService.isWorking || emailPassword.isEmpty)
             }
 
             Section("Password") {
-                SecureField("Current password", text: $currentPassword)
+                // keep password confirmation separate from the email form
+                SecureField("Current password", text: $passwordConfirmation)
                     .textContentType(.password)
                 SecureField("New password", text: $newPassword)
                     .textContentType(.newPassword)
@@ -111,14 +117,14 @@ struct AccountSecurityView: View {
                     Task {
                         if await firebaseService.updateCurrentPassword(
                             to: newPassword,
-                            currentPassword: currentPassword
+                            currentPassword: passwordConfirmation
                         ) {
-                            currentPassword = ""
+                            passwordConfirmation = ""
                             newPassword = ""
                         }
                     }
                 }
-                .disabled(firebaseService.isWorking || currentPassword.isEmpty || newPassword.isEmpty)
+                .disabled(firebaseService.isWorking || passwordConfirmation.isEmpty || newPassword.isEmpty)
             }
 
             Section {

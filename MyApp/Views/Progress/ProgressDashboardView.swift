@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ProgressDashboardView: View {
+    // every chart is calculated from saved lessons and quiz results
     @Environment(AppState.self) private var appState
 
     var body: some View {
@@ -37,6 +38,7 @@ struct ProgressDashboardView: View {
 }
 
 private struct ProgressHero: View {
+    // combines overall completion with the learner's main totals
     let appState: AppState
 
     private var overallProgress: Double {
@@ -49,14 +51,6 @@ private struct ProgressHero: View {
         SampleAnatomyData.organs
             .map(appState.completedLessonCount(for:))
             .reduce(0, +)
-    }
-
-    private var quizAverage: Int {
-        let scores = SampleAnatomyData.organs.map {
-            appState.bestQuizScore(for: $0.id)
-        }
-        guard !scores.isEmpty else { return 0 }
-        return scores.reduce(0, +) / scores.count
     }
 
     var body: some View {
@@ -83,8 +77,16 @@ private struct ProgressHero: View {
             .accessibilityValue("\(Int((overallProgress * 100).rounded())) percent")
 
             VStack(alignment: .leading, spacing: 14) {
-                ProgressMetric(value: "—", label: "Current streak", icon: "flame.fill")
-                ProgressMetric(value: "\(quizAverage)%", label: "Quiz average", icon: "checkmark.seal.fill")
+                ProgressMetric(
+                    value: "\(appState.favouriteStructureIDs.count)",
+                    label: "Saved structures",
+                    icon: "bookmark.fill"
+                )
+                ProgressMetric(
+                    value: "\(appState.quizAverage)%",
+                    label: "Quiz average",
+                    icon: "checkmark.seal.fill"
+                )
                 ProgressMetric(
                     value: "\(completedLessonCount)",
                     label: "Lessons complete",
@@ -115,6 +117,7 @@ private struct ProgressMetric: View {
 }
 
 private struct MasteryCard: View {
+    // passes one organ's live values into the reusable progress graphic
     let organ: Organ
     let appState: AppState
 

@@ -10,6 +10,7 @@ import SwiftUI
 
 @main
 struct AnatomyARProgressBundle: WidgetBundle {
+    // both the progress widget and Live Activity ship in this extension
     var body: some Widget {
         AnatomyARProgress()
         StudySessionLiveActivity()

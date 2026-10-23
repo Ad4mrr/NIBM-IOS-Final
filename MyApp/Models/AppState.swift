@@ -16,6 +16,7 @@ struct StudyProgressSnapshot: Equatable {
 @MainActor
 @Observable
 final class AppState {
+    // this is the main in-memory copy of the learner's profile and progress
     var route: AppRoute = .authentication
 
     var learnerName = "Ravindu" {
@@ -39,6 +40,7 @@ final class AppState {
     @ObservationIgnored private var isLoadingPersistedState = true
 
     init(persistenceController: PersistenceController? = nil) {
+        // tests can provide a temporary store; the app uses the shared store
         self.persistenceController = persistenceController ?? PersistenceController.shared
         loadPersistedState()
     }
@@ -48,6 +50,7 @@ final class AppState {
     }
 
     func applyRemoteProfile(_ profile: RemoteLearnerProfile) {
+        // updating these properties also saves the downloaded profile locally
         learnerName = profile.learnerName
         studyLevel = profile.studyLevel
         dailyGoalMinutes = profile.dailyGoalMinutes
@@ -62,6 +65,7 @@ final class AppState {
     }
 
     var studyProgressSnapshot: StudyProgressSnapshot {
+        // a plain snapshot is easier to send to Firebase and compare for changes
         StudyProgressSnapshot(
             completedLessonIDs: completedLessonIDs,
             favouriteStructureIDs: favouriteStructureIDs,
@@ -70,6 +74,7 @@ final class AppState {
     }
 
     func applyRemoteStudyProgress(_ progress: StudyProgressSnapshot) {
+        // skip identical data so it does not start another unnecessary sync
         guard progress != studyProgressSnapshot else { return }
 
         completedLessonIDs = progress.completedLessonIDs
@@ -80,6 +85,7 @@ final class AppState {
     }
 
     func toggleLessonCompletion(_ lessonID: String) {
+        // the UI updates first, then the same change is saved and sent to the widget
         let isNowCompleted: Bool
 
         if completedLessonIDs.contains(lessonID) {
@@ -103,6 +109,7 @@ final class AppState {
     }
 
     func progress(for organ: Organ) -> Double {
+        // ProgressView needs a value from zero to one
         guard !organ.lessons.isEmpty else { return 0 }
         return Double(completedLessonCount(for: organ)) / Double(organ.lessons.count)
     }
@@ -117,6 +124,7 @@ final class AppState {
     }
 
     func recordQuizResult(organID: String, correctAnswers: Int, totalQuestions: Int) {
+        // only replace the stored score when the learner improves it
         guard totalQuestions > 0 else { return }
 
         let score = Int((Double(correctAnswers) / Double(totalQuestions) * 100).rounded())
@@ -129,6 +137,7 @@ final class AppState {
     }
 
     func resetStudyProgress() {
+        // saved structures are kept because they are bookmarks, not study results
         let context = persistenceController.context
 
         do {
@@ -162,6 +171,7 @@ final class AppState {
     }
 
     func toggleFavourite(_ structureID: String) {
+        // the set prevents the same structure being saved twice
         if favouriteStructureIDs.contains(structureID) {
             favouriteStructureIDs.remove(structureID)
             deleteFavourite(structureID: structureID)
@@ -172,6 +182,7 @@ final class AppState {
     }
 
     private func loadPersistedState() {
+        // load Core Data once when AppState is created
         defer { updateWidgetProgress() }
         let context = persistenceController.context
 
@@ -226,6 +237,7 @@ final class AppState {
     }
 
     private func seedInitialState() {
+        // a brand-new learner should not start with sample progress
         completedLessonIDs = []
         favouriteStructureIDs = []
         bestQuizScores = [:]
@@ -261,6 +273,7 @@ final class AppState {
     }
 
     private func saveProfileWhenReady() {
+        // didSet calls this, but saving is paused while initial data is loading
         guard !isLoadingPersistedState else { return }
 
         let request = NSFetchRequest<PersistedLearnerProfile>(
@@ -282,6 +295,7 @@ final class AppState {
     }
 
     private func saveLessonProgress(lessonID: String, isCompleted: Bool) {
+        // update an existing row or create it the first time the lesson changes
         let request = NSFetchRequest<PersistedLessonProgress>(
             entityName: "PersistedLessonProgress"
         )
@@ -322,6 +336,7 @@ final class AppState {
     }
 
     private func saveQuizScore(organID: String, score: Int) {
+        // there is one best-score row for each organ
         let request = NSFetchRequest<PersistedQuizScore>(
             entityName: "PersistedQuizScore"
         )
@@ -343,7 +358,7 @@ final class AppState {
         let context = persistenceController.context
 
         do {
-            // Replace the local rows so downloaded Firebase progress is also available offline.
+            // replace the local rows so downloaded Firebase progress is also available offline
             for item in try context.fetch(NSFetchRequest<PersistedLessonProgress>(
                 entityName: "PersistedLessonProgress"
             )) {
@@ -385,6 +400,7 @@ final class AppState {
     }
 
     private func saveContext() {
+        // keep Core Data error handling in one place
         do {
             try persistenceController.save()
             persistenceErrorMessage = nil
@@ -399,6 +415,7 @@ final class AppState {
     }
 
     private func updateWidgetProgress() {
+        // give the widget a small summary instead of access to the full database
         WidgetProgressService.update(
             organs: SampleAnatomyData.organs,
             completedLessonIDs: completedLessonIDs,

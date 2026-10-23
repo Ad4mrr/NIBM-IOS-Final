@@ -2,10 +2,21 @@ import SwiftUI
 import WidgetKit
 
 private enum WidgetData {
+    // read the same values written by WidgetProgressService in the app
     static let appGroupID = "group.com.ravinduwijethunga.AnatomyAR"
 
     static func currentEntry() -> ProgressEntry {
-        let defaults = UserDefaults(suiteName: appGroupID) ?? .standard
+        // missing App Group access returns an honest empty widget
+        guard let defaults = UserDefaults(suiteName: appGroupID) else {
+            return ProgressEntry(
+                date: .now,
+                completedLessons: 0,
+                totalLessons: 0,
+                heartProgress: 0,
+                brainProgress: 0,
+                lungsProgress: 0
+            )
+        }
         return ProgressEntry(
             date: .now,
             completedLessons: defaults.integer(forKey: "widget.completedLessons"),
@@ -26,6 +37,7 @@ struct ProgressEntry: TimelineEntry {
     let lungsProgress: Double
 
     var overallProgress: Double {
+        // protect against division by zero before the app writes its first values
         guard totalLessons > 0 else { return 0 }
         return Double(completedLessons) / Double(totalLessons)
     }
@@ -41,6 +53,7 @@ struct ProgressEntry: TimelineEntry {
 }
 
 struct ProgressProvider: TimelineProvider {
+    // app updates reload instantly; this timed refresh is the fallback
     func placeholder(in context: Context) -> ProgressEntry {
         .preview
     }
@@ -49,6 +62,7 @@ struct ProgressProvider: TimelineProvider {
         in context: Context,
         completion: @escaping (ProgressEntry) -> Void
     ) {
+        // gallery previews use sample data; real widgets use saved data
         completion(context.isPreview ? .preview : WidgetData.currentEntry())
     }
 
@@ -56,6 +70,7 @@ struct ProgressProvider: TimelineProvider {
         in context: Context,
         completion: @escaping (Timeline<ProgressEntry>) -> Void
     ) {
+        // supply one current entry and ask WidgetKit to check again later
         let entry = WidgetData.currentEntry()
         let nextRefresh = Calendar.current.date(byAdding: .minute, value: 30, to: .now)
             ?? .now.addingTimeInterval(1_800)
@@ -163,6 +178,7 @@ private struct OrganWidgetProgress: View {
 }
 
 struct AnatomyARProgress: Widget {
+    // small shows overall progress; medium also shows each organ
     let kind = "AnatomyARProgress"
 
     var body: some WidgetConfiguration {

@@ -14,6 +14,7 @@ struct StudySessionAttributes: ActivityAttributes {
 }
 
 struct StudySessionLiveActivity: Widget {
+    // shows the active lesson on the Lock Screen and Dynamic Island
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: StudySessionAttributes.self) { context in
             lockScreenView(context: context)
@@ -88,10 +89,12 @@ struct StudySessionLiveActivity: Widget {
     }
 
     private func timer(endTime: Date) -> some View {
+        // SwiftUI updates this countdown for me
         Text(timerInterval: Date.now...endTime, countsDown: true)
     }
 
     private func symbol(for organName: String) -> String {
+        // match each organ to a familiar SF Symbol
         switch organName.lowercased() {
         case "brain": "brain.head.profile"
         case "lungs": "lungs.fill"

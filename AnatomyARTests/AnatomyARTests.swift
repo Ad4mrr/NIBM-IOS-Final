@@ -4,6 +4,7 @@ import Testing
 @Suite("Learner progress", .serialized)
 @MainActor
 struct LearnerProgressTests {
+    // these tests protect lesson, quiz and saved progress behaviour
     private func makeAppState() -> AppState {
         AppState(persistenceController: PersistenceController(inMemory: true))
     }
@@ -102,6 +103,7 @@ struct LearnerProgressTests {
 
 @Suite("Anatomy models")
 struct AnatomyModelTests {
+    // these checks catch missing structure details or invalid quiz answers
     @Test("Completed lesson count matches lesson statuses")
     func completedLessonCount() {
         #expect(SampleAnatomyData.heart.completedLessonCount == 2)

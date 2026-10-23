@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct OnboardingIntroductionView: View {
+    // explain the main features before asking for learner preferences
     var body: some View {
         VStack(spacing: 28) {
             Spacer()
@@ -48,6 +49,7 @@ struct OnboardingIntroductionView: View {
 }
 
 private struct OnboardingFeatureRow: View {
+    // one short explanation row on the onboarding introduction
     let icon: String
     let title: String
     let description: String
@@ -76,6 +78,7 @@ private struct OnboardingFeatureRow: View {
 }
 
 struct ProfileSetupView: View {
+    // these choices are saved locally and to Firebase when setup finishes
     @Environment(AppState.self) private var appState
     @Environment(FirebaseService.self) private var firebaseService
 
@@ -106,6 +109,7 @@ struct ProfileSetupView: View {
 
             Section {
                 Button {
+                    // save Firebase first so setup only finishes after success
                     Task {
                         let saved = await firebaseService.saveCurrentLearnerProfile(
                             name: appState.learnerName,

@@ -3,6 +3,7 @@ import Foundation
 
 @MainActor
 final class PersistenceController {
+    // one shared Core Data container is enough for this small local data model
     static let shared = PersistenceController()
 
     let container: NSPersistentContainer
@@ -12,6 +13,7 @@ final class PersistenceController {
     }
 
     init(inMemory: Bool = false) {
+        // in-memory mode keeps unit tests separate from the learner's real data
         container = NSPersistentContainer(
             name: "AnatomyAR",
             managedObjectModel: Self.makeManagedObjectModel()
@@ -26,19 +28,21 @@ final class PersistenceController {
 
         container.loadPersistentStores { _, error in
             if let error {
-                // Keep the app running and let AppState show the save error if needed.
+                // keep the app running and let AppState show the save error if needed
                 print("Core Data store failed to load: \(error.localizedDescription)")
             }
         }
     }
 
     func save() throws {
+        // avoid an unnecessary disk write when nothing changed
         guard context.hasChanges else { return }
         try context.save()
     }
 
     private static func makeManagedObjectModel() -> NSManagedObjectModel {
-        // The small Core Data model is created here instead of using a separate model file.
+        // build the four small entities used by AppState
+        // the small Core Data model is created here instead of using a separate model file
         let model = NSManagedObjectModel()
         model.entities = [
             makeLearnerProfileEntity(),

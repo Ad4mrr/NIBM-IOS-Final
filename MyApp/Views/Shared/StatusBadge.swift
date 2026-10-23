@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct StatusBadge: View {
+    // small reusable label for lesson and progress states
     let title: String
     let systemImage: String
     var color: Color = AnatomyTheme.teal

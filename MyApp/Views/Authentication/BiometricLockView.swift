@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct BiometricLockView: View {
+    // app content stays covered until the biometric check succeeds
     @Environment(BiometricService.self) private var biometricService
 
     var body: some View {

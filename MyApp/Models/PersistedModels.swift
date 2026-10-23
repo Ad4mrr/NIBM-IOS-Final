@@ -1,5 +1,6 @@
 import CoreData
 
+// these Core Data objects keep progress available when the app is offline
 @objc(PersistedLearnerProfile)
 final class PersistedLearnerProfile: NSManagedObject {
     @NSManaged var id: String

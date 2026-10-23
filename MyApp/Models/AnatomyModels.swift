@@ -1,5 +1,6 @@
 import Foundation
 
+// value models used by lessons, search, quizzes and saved pages
 struct Organ: Identifiable, Hashable {
     let id: String
     let title: String

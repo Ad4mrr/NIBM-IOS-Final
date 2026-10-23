@@ -12,6 +12,7 @@ struct RemoteLearnerProfile {
 @MainActor
 @Observable
 final class FirebaseService {
+    // keeps authentication, profile data and cloud progress in one service
     private(set) var isAuthenticated = false
     private(set) var isWorking = false
     private(set) var currentUserEmail: String?
@@ -21,6 +22,7 @@ final class FirebaseService {
     @ObservationIgnored private var authStateHandle: AuthStateDidChangeListenerHandle?
 
     func startObservingAuthentication() {
+        // Firebase calls this when the account changes
         guard authStateHandle == nil else { return }
 
         let currentUser = Auth.auth().currentUser
@@ -29,7 +31,7 @@ final class FirebaseService {
 
         authStateHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             Task { @MainActor in
-                // Let sign-in and account creation finish their setup before changing screens.
+                // let sign-in and account creation finish their setup before changing screens
                 guard self?.isWorking == false else { return }
                 self?.isAuthenticated = user != nil
                 self?.currentUserEmail = user?.email
@@ -38,6 +40,7 @@ final class FirebaseService {
     }
 
     func signIn(email: String, password: String) async -> RemoteLearnerProfile? {
+        // return the profile so the sign-in screen can update AppState immediately
         guard validate(email: email, password: password) else { return nil }
 
         isWorking = true
@@ -63,6 +66,7 @@ final class FirebaseService {
         studyLevel: String,
         dailyGoalMinutes: Int
     ) async -> Bool {
+        // create authentication first, then create matching Firestore documents
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             errorMessage = "Please enter your name."
             return false
@@ -142,6 +146,7 @@ final class FirebaseService {
     }
 
     func signOut() {
+        // appState changes the screen after Firebase clears the session
         do {
             try Auth.auth().signOut()
             isAuthenticated = false
@@ -195,6 +200,7 @@ final class FirebaseService {
     }
 
     func updateCurrentEmail(to email: String, currentPassword: String) async -> Bool {
+        // Firebase needs the current password here
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
         guard validate(email: trimmedEmail, password: currentPassword) else { return false }
 
@@ -218,6 +224,7 @@ final class FirebaseService {
     }
 
     func sendPasswordReset(email: String? = nil) async -> Bool {
+        // the login screen supplies an email; Settings uses the signed-in email
         let address = (email ?? currentUserEmail ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard address.contains("@"), address.contains(".") else {
@@ -252,6 +259,7 @@ final class FirebaseService {
     }
 
     func synchronizeStudyProgress(local: StudyProgressSnapshot) async -> StudyProgressSnapshot? {
+        // existing cloud data wins so the same account matches across devices
         guard let userID = Auth.auth().currentUser?.uid else { return nil }
 
         do {
@@ -262,7 +270,7 @@ final class FirebaseService {
                 .document("progress")
             let snapshot = try await reference.getDocument()
 
-            // A new account starts with the device's local progress. Existing accounts use Firebase.
+            // a new account starts with the device's local progress. Existing accounts use Firebase
             guard let data = snapshot.data() else {
                 try await saveStudyProgress(local, to: reference)
                 return local
@@ -276,6 +284,7 @@ final class FirebaseService {
     }
 
     func saveCurrentStudyProgress(_ progress: StudyProgressSnapshot) async {
+        // this is called after AppState detects a local progress change
         guard let userID = Auth.auth().currentUser?.uid else { return }
 
         do {
@@ -340,6 +349,7 @@ final class FirebaseService {
     }
 
     private func decodeStudyProgress(_ data: [String: Any]) -> StudyProgressSnapshot {
+        // convert Firestore numbers back to Int
         let rawScores = data["bestQuizScores"] as? [String: Any] ?? [:]
         let scores = rawScores.reduce(into: [String: Int]()) { result, item in
             if let score = item.value as? NSNumber {
@@ -395,7 +405,7 @@ final class FirebaseService {
     }
 
     private func reauthenticate(user: User, password: String) async throws {
-        // Firebase asks for a recent login before sensitive email or password changes.
+        // Firebase needs a recent login for this
         guard let email = user.email else {
             throw NSError(domain: "FirebaseService", code: 2, userInfo: [
                 NSLocalizedDescriptionKey: "This account does not have an email address."
@@ -406,6 +416,7 @@ final class FirebaseService {
     }
 
     private func friendlyMessage(for error: Error) -> String {
+        // replace Firebase error codes with messages a learner can understand
         let code = AuthErrorCode(rawValue: (error as NSError).code)
 
         switch code {

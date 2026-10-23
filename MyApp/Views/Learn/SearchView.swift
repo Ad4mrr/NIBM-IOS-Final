@@ -1,11 +1,13 @@
 import SwiftUI
 
 struct SearchView: View {
+    // search covers all local lessons and structures, so it works offline too
     @State private var searchText = ""
 
     private static let allResults = SearchResult.makeAllResults()
 
     private var visibleResults: [SearchResult] {
+        // an empty search shows everything instead of an empty screen
         guard !searchText.isEmpty else {
             return Self.allResults
         }
@@ -39,6 +41,7 @@ struct SearchView: View {
 }
 
 private struct SearchResult: Identifiable {
+    // destination links each result to its real lesson or structure
     enum Destination {
         case lesson(AnatomyLesson)
         case structure(AnatomyStructure)
@@ -108,6 +111,7 @@ private struct SearchResult: Identifiable {
 }
 
 private struct SearchDestinationView: View {
+    // opens the right detail screen without duplicate navigation code
     let destination: SearchResult.Destination
 
     var body: some View {

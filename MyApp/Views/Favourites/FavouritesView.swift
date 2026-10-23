@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct FavouritesView: View {
+    // saved IDs are converted back into full structure records here
     @Environment(AppState.self) private var appState
 
     private var visibleFavourites: [AnatomyStructure] {
@@ -35,6 +36,7 @@ struct FavouritesView: View {
 }
 
 private struct FavouriteRow: View {
+    // small summary displayed inside the saved structures list
     let structure: AnatomyStructure
 
     var body: some View {
@@ -59,6 +61,7 @@ private struct FavouriteRow: View {
 }
 
 private struct EmptyFavouritesView: View {
+    // helpful message shown before the learner saves anything
     var body: some View {
         ContentUnavailableView {
             Label("Saved Structures", systemImage: "bookmark")

@@ -1,10 +1,12 @@
 import SwiftUI
 
 struct ARPlaceholderView: View {
+    // pick an organ here before opening its full-screen AR experience
     @State private var selectedOrganID: String
     @State private var isPresentingAR = false
 
     init(initialOrganID: String = "heart") {
+        // saved structures can pass their organ; the AR tab starts with Heart
         let supportedOrgans = ["heart", "brain", "lungs"]
         _selectedOrganID = State(
             initialValue: supportedOrgans.contains(initialOrganID) ? initialOrganID : "heart"
@@ -12,6 +14,7 @@ struct ARPlaceholderView: View {
     }
 
     private var selectedOrgan: Organ {
+        // fall back safely if an unknown ID is ever passed in
         SampleAnatomyData.organs.first { $0.id == selectedOrganID } ?? SampleAnatomyData.heart
     }
 
